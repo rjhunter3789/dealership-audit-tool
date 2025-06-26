@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dealership Website Audit Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group label {
+    	    min-width: auto;
+            text-align: center;
+            font-size: 1.2rem;
+            width: 100%;
+            margin-bottom: 5px;
+}
+
+        .input-group input {
+            min-width: auto;
+  	    width: 100%;
+ 	    max-width: 400px;
+ 	    font-size: 18px;
+   	    padding: 18px 20px;
+   	    text-align: center;
+    	    border-radius: 12px;
+} 
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .audit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .audit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .audit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-section {
+            display: none;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .progress-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .test-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .test-item.running {
+            border-color: #ffc107;
+            background: #fff9c4;
+        }
+
+        .test-item.passed {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .test-item.failed {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .test-item h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .test-item .status {
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .status.pending {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        .status.running {
+            background: #ffc107;
+            color: #856404;
+        }
+
+        .status.passed {
+            background: #28a745;
+            color: white;
+        }
+
+        .status.failed {
+            background: #dc3545;
+            color: white;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+
+        .overall-score {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .results-content {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            padding: 30px;
+        }
+
+        .category-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .category-card h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .category-score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-1 { color: #dc3545; }
+        .score-2 { color: #fd7e14; }
+        .score-3 { color: #ffc107; }
+        .score-4 { color: #20c997; }
+        .score-5 { color: #28a745; }
+
+        .recommendations {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .recommendations h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .priority-high {
+            border-left: 4px solid #dc3545;
+        }
+
+        .priority-medium {
+            border-left: 4px solid #ffc107;
+        }
+
+        .priority-low {
+            border-left: 4px solid #28a745;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .export-buttons {
+            margin-top: 30px;
+            text-align: center;
+            gap: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #5a6268;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .input-group label {
+                min-width: auto;
+                text-align: center;
+                font-size: 1.2rem;
+            }
+
+            .input-group input {
+                min-width: auto;
+                width: 100%;
+                font-size: 18px;
+                padding: 15px;
+                text-align: center;
+                border-radius: 10px;
+            }
+
+            .audit-btn {
+   		width: 100%;
+    		max-width: 280px;
+  	        font-size: 16px;
+                padding: 16px 20px;
+                border-radius: 12px;
+                margin-top: 5px;
+            }
+
+            .overall-score {
+                font-size: 2.5rem !important;
+            }
+            
+            .category-results {
+                grid-template-columns: 1fr !important;
+                gap: 15px;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .export-btn {
+                width: 100%;
+                padding: 15px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+  
+<div class="header">
+    <h1>Dealership Website Audit Tool</h1>
+
+    <p>Comprehensive automated analysis powered by Selenium & modern web testing</p>
+</div>
+        <div class="main-content">
+            <div class="input-section">
+    <div class="mobile-input-group">
+        <label for="domain">Website URL:</label>
+        <input type="url" id="domain" placeholder="Enter dealership domain (e.g., smithford.com)" />
+        <button class="audit-btn" onclick="startAudit()">
+            <span id="btn-text">🚀 Start Audit</span>
+        </button>
+    </div>
+</div>
+            </div>
+
+            <div class="progress-section" id="progress-section">
+                <div class="progress-header">
+                    <h2>🔍 Running Comprehensive Website Audit</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p id="progress-text">Initializing audit systems...</p>
+                </div>
+
+                <div class="test-grid" id="test-grid">
+                    <!-- Test items will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="results-section" id="results-section">
+                <div class="results-header">
+                    <div class="overall-score" id="overall-score">--</div>
+                    <div class="score-label">Overall Performance Score</div>
+                </div>
+
+                <div class="results-content">
+                    <div class="category-results" id="category-results">
+                        <!-- Category results will be populated by JavaScript -->
+                    </div>
+
+                    <div class="recommendations">
+                        <h3>🎯 Priority Recommendations</h3>
+                        <div id="recommendations-list">
+                            <!-- Recommendations will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="export-buttons">
+                        <button class="export-btn" onclick="exportToPDF()">📄 Export PDF Report</button>
+                        <button class="export-btn" onclick="exportToCSV()">📊 Export Data CSV</button>
+                        <button class="export-btn" onclick="scheduleFollowUp()">📅 Schedule Follow-up</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let auditData = {};
+        let currentTestIndex = 0;
+
+        const testCategories = [
+            {
+                name: "Basic Connectivity",
+                tests: ["Domain Resolution", "SSL Certificate", "Server Response", "Redirect Handling"]
+            },
+            {
+                name: "Performance Testing", 
+                tests: ["Page Load Speed", "Core Web Vitals", "Mobile Performance", "Resource Optimization"]
+            },
+            {
+                name: "SEO Analysis",
+                tests: ["Meta Tags", "Heading Structure", "Schema Markup", "Internal Linking"]
+            },
+            {
+                name: "User Experience",
+                tests: ["Navigation Testing", "Form Functionality", "Mobile Responsiveness", "Accessibility"]
+            },
+            {
+                name: "Content Analysis",
+                tests: ["Inventory Visibility", "Contact Information", "Business Hours", "Specials Display"]
+            },
+            {
+                name: "Interactive Elements",
+                tests: ["Chat Widget", "Lead Forms", "Search Functionality", "Calculator Tools"]
+            },
+            {
+                name: "Technical Validation",
+                tests: ["Link Checking", "Image Optimization", "JavaScript Errors", "CSS Validation"]
+            },
+            {
+                name: "Integration Testing",
+                tests: ["CRM Integration", "Analytics Tracking", "Third-party Tools", "Social Media Links"]
+            }
+        ];
+
+async function startAudit() {
+    const domain = document.getElementById('domain').value.trim();
+    
+    if (!domain) {
+        alert('Please enter a valid domain name');
+        return;
+    }
+
+    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+    try {
+        // Show progress section
+        document.getElementById('progress-section').style.display = 'block';
+        document.querySelector('.audit-btn').disabled = true;
+        document.getElementById('btn-text').innerHTML = '<span class="loading-spinner"></span>Starting Real Audit...';
+
+        // Start real audit via API
+        const response = await fetch('http://10.0.0.23:3001/api/audit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain: cleanDomain })
+        });
+        
+        const { auditId } = await response.json();
+        
+        // Poll for results
+        pollAuditStatus(auditId);
+        
+    } catch (error) {
+        console.error('Audit failed:', error);
+        alert('Could not connect to audit server. Make sure the backend is running on 10.0.0.23:3001');
+        
+        // Reset UI
+        document.getElementById('progress-section').style.display = 'none';
+        document.querySelector('.audit-btn').disabled = false;
+        document.getElementById('btn-text').textContent = 'Start Comprehensive Audit';
+    }
+}
+
+async function pollAuditStatus(auditId) {
+    const poll = async () => {
+        try {
+            const response = await fetch(`http://10.0.0.23:3001/api/audit/${auditId}`);
+            const audit = await response.json();
+            
+            // Update progress
+            document.getElementById('progress-fill').style.width = audit.progress + '%';
+            document.getElementById('progress-text').textContent = 
+                audit.currentTest || `${audit.progress}% complete`;
+            
+            if (audit.status === 'completed') {
+                // Show real results
+                showRealResults(audit);
+            } else if (audit.status === 'running') {
+                setTimeout(poll, 2000); // Poll every 2 seconds
+            } else if (audit.status === 'failed') {
+                alert('Audit failed: ' + (audit.error || 'Unknown error'));
+                resetUI();
+            }
+        } catch (error) {
+            console.error('Polling failed:', error);
+            alert('Lost connection to audit server');
+            resetUI();
+        }
+    };
+    
+    poll();
+}
+
+function showRealResults(audit) {
+    document.getElementById('progress-section').style.display = 'none';
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('overall-score').textContent = audit.overallScore + '/100';
+    
+    // Color the score
+    const scoreElement = document.getElementById('overall-score');
+    if (audit.overallScore >= 80) scoreElement.style.color = '#28a745';
+    else if (audit.overallScore >= 60) scoreElement.style.color = '#ffc107';
+    else scoreElement.style.color = '#dc3545';
+
+    // Show actual category data
+    displayCategoryResults(audit.results);
+    
+    // Show real recommendations
+    displayRealRecommendations(audit.results);
+    
+    // Reset button
+    document.querySelector('.audit-btn').disabled = false;
+    document.getElementById('btn-text').textContent = 'Start New Audit';
+}
+
+function displayCategoryResults(results) {
+    const categoryResults = document.getElementById('category-results');
+    categoryResults.innerHTML = '';
+
+    Object.entries(results).forEach(([categoryName, categoryData]) => {
+        const score = Math.round(categoryData.score);
+        
+        const categoryCard = document.createElement('div');
+        categoryCard.className = 'category-card';
+        categoryCard.innerHTML = `
+            <h4>${categoryName}</h4>
+            <div class="category-score score-${score}">${score}/5</div>
+            <p><strong>Tests Completed:</strong> ${Object.keys(categoryData.tests).length}</p>
+            <p><strong>Status:</strong> ${score >= 4 ? 'Excellent' : score >= 3 ? 'Good' : score >= 2 ? 'Needs Work' : 'Critical Issues'}</p>
+        `;
+        categoryResults.appendChild(categoryCard);
+    });
+}
+
+function displayRealRecommendations(results) {
+    const recommendationsList = document.getElementById('recommendations-list');
+    recommendationsList.innerHTML = '';
+
+    const allRecommendations = [];
+
+    Object.entries(results).forEach(([categoryName, categoryData]) => {
+        Object.entries(categoryData.tests).forEach(([testName, testResult]) => {
+            if (testResult.score < 4 && testResult.recommendations) {
+                testResult.recommendations.forEach(rec => {
+                    allRecommendations.push({
+                        category: categoryName,
+                        test: testName,
+                        text: rec,
+                        priority: testResult.score <= 2 ? 'high' : testResult.score === 3 ? 'medium' : 'low',
+                        score: testResult.score,
+                        details: testResult.details
+                    });
+                });
+            }
+        });
+    });
+
+    // Sort by priority and score
+    allRecommendations.sort((a, b) => {
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority] || a.score - b.score;
+    });
+
+    // Display recommendations
+    allRecommendations.slice(0, 15).forEach(rec => {
+        const recElement = document.createElement('div');
+        recElement.className = `recommendation-item priority-${rec.priority}`;
+        recElement.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <strong style="color: ${rec.priority === 'high' ? '#dc3545' : rec.priority === 'medium' ? '#ffc107' : '#28a745'}">
+                    ${rec.priority.toUpperCase()} PRIORITY
+                </strong>
+                <span style="font-size: 0.9rem; color: #6c757d;">${rec.category} - ${rec.test}</span>
+            </div>
+            <div style="margin-bottom: 5px;"><strong>Issue:</strong> ${rec.text}</div>
+            <div style="font-size: 0.9rem; color: #6c757d;"><strong>Details:</strong> ${rec.details}</div>
+        `;
+        recommendationsList.appendChild(recElement);
+    });
+
+    if (allRecommendations.length === 0) {
+        recommendationsList.innerHTML = '<div class="recommendation-item priority-low"><strong>EXCELLENT:</strong> No critical issues found! This website is performing well.</div>';
+    }
+}
+
+        function createTestGrid() {
+            const testGrid = document.getElementById('test-grid');
+            testGrid.innerHTML = '';
+
+            testCategories.forEach((category, categoryIndex) => {
+                category.tests.forEach((test, testIndex) => {
+                    const testItem = document.createElement('div');
+                    testItem.className = 'test-item';
+                    testItem.id = `test-${categoryIndex}-${testIndex}`;
+                    
+                    testItem.innerHTML = `
+                        <h3>${test}</h3>
+                        <p>${category.name}</p>
+                        <span class="status pending">Pending</span>
+                    `;
+                    
+                    testGrid.appendChild(testItem);
+                });
+            });
+        }
+
+        async function runAuditSequence() {
+            const totalTests = testCategories.reduce((sum, cat) => sum + cat.tests.length, 0);
+            let completedTests = 0;
+
+            for (let categoryIndex = 0; categoryIndex < testCategories.length; categoryIndex++) {
+                const category = testCategories[categoryIndex];
+                auditData.results[category.name] = {};
+
+                for (let testIndex = 0; testIndex < category.tests.length; testIndex++) {
+                    const test = category.tests[testIndex];
+                    const testId = `test-${categoryIndex}-${testIndex}`;
+                    
+                    // Update UI to show running test
+                    updateTestStatus(testId, 'running');
+                    updateProgressText(`Running ${test}...`);
+                    
+                    // Simulate test execution
+                    const result = await simulateTest(category.name, test);
+                    auditData.results[category.name][test] = result;
+                    
+                    // Update test status
+                    updateTestStatus(testId, result.passed ? 'passed' : 'failed');
+                    
+                    completedTests++;
+                    updateProgress(completedTests, totalTests);
+                    
+                    // Add delay for demo purposes
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+            }
+
+            // Complete audit
+            completeAudit();
+        }
+
+        async function simulateTest(category, testName) {
+            // Simulate different test scenarios with realistic results
+            const randomScore = Math.floor(Math.random() * 5) + 1;
+            const passed = randomScore >= 3;
+            
+            // Simulate more realistic failure rates for different test types
+            let adjustedScore = randomScore;
+            if (testName.includes('Speed') || testName.includes('Performance')) {
+                adjustedScore = Math.max(2, randomScore - 1); // Performance often has issues
+            } else if (testName.includes('SEO') || testName.includes('Schema')) {
+                adjustedScore = Math.max(2, randomScore); // SEO usually moderate
+            } else if (testName.includes('Accessibility')) {
+                adjustedScore = Math.max(1, randomScore - 2); // Accessibility often poor
+            }
+
+            return {
+                score: adjustedScore,
+                passed: adjustedScore >= 3,
+                details: generateTestDetails(testName, adjustedScore),
+                recommendations: generateRecommendations(testName, adjustedScore)
+            };
+        }
+
+        function generateTestDetails(testName, score) {
+            const details = {
+                1: "Critical issues found requiring immediate attention",
+                2: "Significant problems detected that impact performance",
+                3: "Basic requirements met but improvements needed",
+                4: "Good performance with minor optimization opportunities", 
+                5: "Excellent performance meeting best practices"
+            };
+            return details[score];
+        }
+
+        function generateRecommendations(testName, score) {
+            if (score >= 4) return [];
+            
+            const recommendations = {
+                "Page Load Speed": ["Optimize images and enable compression", "Implement CDN", "Minify CSS/JS"],
+                "Mobile Performance": ["Improve mobile page speed", "Fix mobile usability issues", "Test on various devices"],
+                "SEO Analysis": ["Add missing meta descriptions", "Improve title tags", "Fix broken internal links"],
+                "Accessibility": ["Add alt text to images", "Improve keyboard navigation", "Increase color contrast"],
+                "Lead Forms": ["Simplify form fields", "Add form validation", "Test form submissions"],
+                "Chat Widget": ["Verify chat functionality", "Test response times", "Check mobile compatibility"]
+            };
+            
+            return recommendations[testName] || ["Review and optimize this component"];
+        }
+
+        function updateTestStatus(testId, status) {
+            const testItem = document.getElementById(testId);
+            const statusElement = testItem.querySelector('.status');
+            
+            testItem.className = `test-item ${status}`;
+            statusElement.className = `status ${status}`;
+            statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        }
+
+        function updateProgress(completed, total) {
+            const percentage = (completed / total) * 100;
+            document.getElementById('progress-fill').style.width = percentage + '%';
+        }
+
+        function updateProgressText(text) {
+            document.getElementById('progress-text').textContent = text;
+        }
+
+        function completeAudit() {
+            // Calculate overall score
+            let totalScore = 0;
+            let testCount = 0;
+
+            Object.values(auditData.results).forEach(category => {
+                Object.values(category).forEach(result => {
+                    totalScore += result.score;
+                    testCount++;
+                });
+            });
+
+            auditData.overallScore = Math.round((totalScore / testCount) * 20); // Convert to 100-point scale
+
+            // Update UI
+            updateProgressText('Audit completed! Generating report...');
+            
+            setTimeout(() => {
+                document.getElementById('progress-section').style.display = 'none';
+                showResults();
+                
+                // Reset button
+                document.querySelector('.audit-btn').disabled = false;
+                document.getElementById('btn-text').textContent = 'Start New Audit';
+            }, 1500);
+        }
+
+        function showResults() {
+            // Show results section
+            document.getElementById('results-section').style.display = 'block';
+            
+            // Update overall score
+            document.getElementById('overall-score').textContent = auditData.overallScore + '/100';
+            
+            // Update score color
+            const scoreElement = document.getElementById('overall-score');
+            if (auditData.overallScore >= 80) scoreElement.style.color = '#28a745';
+            else if (auditData.overallScore >= 60) scoreElement.style.color = '#ffc107';
+            else scoreElement.style.color = '#dc3545';
+
+            // Generate category results
+            generateCategoryResults();
+            
+            // Generate recommendations
+            generateRecommendations();
+        }
+
+        function generateCategoryResults() {
+            const categoryResults = document.getElementById('category-results');
+            categoryResults.innerHTML = '';
+
+            Object.entries(auditData.results).forEach(([categoryName, tests]) => {
+                const categoryScore = Object.values(tests).reduce((sum, test) => sum + test.score, 0) / Object.keys(tests).length;
+                const roundedScore = Math.round(categoryScore);
+
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'category-card';
+                categoryCard.innerHTML = `
+                    <h4>${categoryName}</h4>
+                    <div class="category-score score-${roundedScore}">${roundedScore}/5</div>
+                    <p>${generateCategoryDescription(categoryName, roundedScore)}</p>
+                `;
+
+                categoryResults.appendChild(categoryCard);
+            });
+        }
+
+        function generateCategoryDescription(category, score) {
+            const descriptions = {
+                1: "Needs immediate attention",
+                2: "Significant improvements required", 
+                3: "Meets basic requirements",
+                4: "Good performance",
+                5: "Excellent performance"
+            };
+            return descriptions[score];
+        }
+
+        function generateRecommendations() {
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = '';
+
+            const allRecommendations = [];
+
+            Object.values(auditData.results).forEach(category => {
+                Object.values(category).forEach(test => {
+                    if (test.score < 4 && test.recommendations.length > 0) {
+                        test.recommendations.forEach(rec => {
+                            allRecommendations.push({
+                                text: rec,
+                                priority: test.score <= 2 ? 'high' : test.score === 3 ? 'medium' : 'low'
+                            });
+                        });
+                    }
+                });
+            });
+
+            // Sort by priority
+            allRecommendations.sort((a, b) => {
+                const priorityOrder = { high: 0, medium: 1, low: 2 };
+                return priorityOrder[a.priority] - priorityOrder[b.priority];
+            });
+
+            // Display top 10 recommendations
+            allRecommendations.slice(0, 10).forEach(rec => {
+                const recElement = document.createElement('div');
+                recElement.className = `recommendation-item priority-${rec.priority}`;
+                recElement.innerHTML = `
+                    <strong>${rec.priority.toUpperCase()} PRIORITY:</strong> ${rec.text}
+                `;
+                recommendationsList.appendChild(recElement);
+            });
+        }
+
+        function exportToPDF() {
+            alert('PDF export functionality would integrate with a PDF generation library like jsPDF');
+        }
+
+        function exportToCSV() {
+            alert('CSV export functionality would format the audit data into CSV format');
+        }
+
+        function scheduleFollowUp() {
+            alert('Follow-up scheduling would integrate with calendar APIs');
+        }
+
+        // Auto-focus on domain input
+        document.getElementById('domain').focus();
+
+        // Enter key support
+        document.getElementById('domain').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startAudit();
+            }
+        });
+    </script>
+</body>
+</html>
