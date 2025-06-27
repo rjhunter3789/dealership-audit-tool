@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auto Audit Pro - Comprehensive Dealership Website Analysis</title>
     <!-- Copyright Protection -->
-    <meta name="copyright" content="© 2025 Jeffrey Lee Robinson. All Rights Reserved.">
-    <meta name="author" content="Jeffrey Lee Robinson">
+    <meta name="copyright" content="© 2025 JL Robinson. All Rights Reserved.">
+    <meta name="author" content="JL Robinson">
     <meta name="contact" content="nakapaahu@gmail.com">
     <meta name="application-name" content="Auto Audit Pro">
-    <meta name="generator" content="Auto Audit Pro v1.0 - Dealership Website Analysis Platform">
+    <meta name="generator" content="Auto Audit Pro v2.0 - Dealership Website Analysis Platform">
     <style>
         * {
             margin: 0;
@@ -50,7 +50,7 @@
             opacity: 0.9;
         }
 
-        /* Enhanced Feature Showcase Section */
+        /* FIXED: Balanced Feature Showcase Section */
         .features-highlight {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -74,6 +74,10 @@
             border-radius: 8px;
             backdrop-filter: blur(10px);
             transition: transform 0.3s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .feature-item:hover {
@@ -89,6 +93,7 @@
         .feature-item p {
             font-size: 0.9rem;
             opacity: 0.9;
+            line-height: 1.3;
         }
 
         .main-content {
@@ -101,13 +106,6 @@
             border-radius: 10px;
             margin-bottom: 30px;
             border: 2px solid #e9ecef;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
         }
 
         .mobile-input-group {
@@ -398,6 +396,7 @@
             background: #5a6268;
         }
 
+        /* RESPONSIVE: Mobile adjustments */
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -412,9 +411,23 @@
                 font-size: 1.8rem;
             }
             
+            /* MOBILE: 2x2 grid for smaller screens */
             .features-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
                 gap: 15px;
+            }
+            
+            .feature-item {
+                min-height: 100px;
+                padding: 12px;
+            }
+            
+            .feature-item h4 {
+                font-size: 1rem;
+            }
+            
+            .feature-item p {
+                font-size: 0.8rem;
             }
             
             .mobile-input-group {
@@ -478,10 +491,11 @@
             <p>Comprehensive Automotive Dealership Website Analysis Platform</p>
         </div>
 
-        <!-- Professional Feature Showcase -->
+        <!-- FIXED: Professional Feature Showcase - 4x4 Grid -->
         <div class="features-highlight">
             <h3>🔍 Complete Website Health Analysis</h3>
             <div class="features-grid">
+                <!-- Row 1: 4 Categories -->
                 <div class="feature-item">
                     <h4>⚡ Performance</h4>
                     <p>Speed, Core Web Vitals, Mobile optimization</p>
@@ -498,6 +512,8 @@
                     <h4>📊 SEO & Search</h4>
                     <p>Meta tags, schema, local search, structure</p>
                 </div>
+                
+                <!-- Row 2: 4 Categories -->
                 <div class="feature-item">
                     <h4>📝 Content Quality</h4>
                     <p>Inventory accuracy, contact info, freshness</p>
@@ -573,7 +589,7 @@
     <!-- Copyright Footer -->
     <div class="copyright-footer">
         <div style="background: #2c3e50; color: white; text-align: center; padding: 20px; margin-top: 40px;">
-            <p style="margin: 0; font-size: 14px;">© 2025 Jeffrey Lee Robinson. All Rights Reserved.</p>
+            <p style="margin: 0; font-size: 14px;">© 2025 JL Robinson. All Rights Reserved.</p>
             <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9;">
                 Powered by Advanced Selenium Automation | Professional Dealership Website Analysis Platform
             </p>
@@ -585,7 +601,7 @@
 
     <script>
         // Auto Audit Pro - Professional Dealership Website Analysis Platform
-        // © 2025 Jeffrey Lee Robinson. All Rights Reserved.
+        // © 2025 JL Robinson. All Rights Reserved.
         
         let auditData = {};
         let currentTestIndex = 0;
@@ -617,12 +633,12 @@
                 tests: ["Chat Widget", "Lead Forms", "Search Functionality", "Calculator Tools"]
             },
             {
-                name: "⚙️ Technical Foundation",
-                tests: ["Link Checking", "Image Optimization", "JavaScript Errors", "CSS Validation"]
+                name: "🏢 Brand Compliance",
+                tests: ["Manufacturer Guidelines", "Legal Requirements", "Pricing Compliance", "Logo Usage"]
             },
             {
-                name: "🔗 Third-Party Integration",
-                tests: ["CRM Integration", "Analytics Tracking", "Third-party Tools", "Social Media Links"]
+                name: "💼 Lead Generation",
+                tests: ["Contact Forms", "Call-to-Action Buttons", "Chat Integration", "Conversion Tracking"]
             }
         ];
 
@@ -793,252 +809,352 @@
             }
         }
 
-        function createTestGrid() {
-            const testGrid = document.getElementById('test-grid');
-            testGrid.innerHTML = '';
-
-            testCategories.forEach((category, categoryIndex) => {
-                category.tests.forEach((test, testIndex) => {
-                    const testItem = document.createElement('div');
-                    testItem.className = 'test-item';
-                    testItem.id = `test-${categoryIndex}-${testIndex}`;
-                    
-                    testItem.innerHTML = `
-                        <h3>${test}</h3>
-                        <p>${category.name}</p>
-                        <span class="status pending">Pending</span>
-                    `;
-                    
-                    testGrid.appendChild(testItem);
-                });
-            });
-        }
-
-        async function runAuditSequence() {
-            const totalTests = testCategories.reduce((sum, cat) => sum + cat.tests.length, 0);
-            let completedTests = 0;
-
-            for (let categoryIndex = 0; categoryIndex < testCategories.length; categoryIndex++) {
-                const category = testCategories[categoryIndex];
-                auditData.results[category.name] = {};
-
-                for (let testIndex = 0; testIndex < category.tests.length; testIndex++) {
-                    const test = category.tests[testIndex];
-                    const testId = `test-${categoryIndex}-${testIndex}`;
-                    
-                    // Update UI to show running test
-                    updateTestStatus(testId, 'running');
-                    updateProgressText(`Running ${test}...`);
-                    
-                    // Simulate test execution
-                    const result = await simulateTest(category.name, test);
-                    auditData.results[category.name][test] = result;
-                    
-                    // Update test status
-                    updateTestStatus(testId, result.passed ? 'passed' : 'failed');
-                    
-                    completedTests++;
-                    updateProgress(completedTests, totalTests);
-                    
-                    // Add delay for demo purposes
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                }
+        // ENHANCED PDF EXPORT WITH PRIORITY ACTION ITEMS
+        function exportToPDF() {
+            const auditData = getCurrentAuditDataEnhanced();
+            const recommendations = getCurrentRecommendations();
+            
+            if (!auditData) {
+                alert('No audit data available. Please run an audit first.');
+                return;
             }
-
-            // Complete audit
-            completeAudit();
-        }
-
-        async function simulateTest(category, testName) {
-            // Simulate different test scenarios with realistic results
-            const randomScore = Math.floor(Math.random() * 5) + 1;
-            const passed = randomScore >= 3;
             
-            // Simulate more realistic failure rates for different test types
-            let adjustedScore = randomScore;
-            if (testName.includes('Speed') || testName.includes('Performance')) {
-                adjustedScore = Math.max(2, randomScore - 1); // Performance often has issues
-            } else if (testName.includes('SEO') || testName.includes('Schema')) {
-                adjustedScore = Math.max(2, randomScore); // SEO usually moderate
-            } else if (testName.includes('Accessibility')) {
-                adjustedScore = Math.max(1, randomScore - 2); // Accessibility often poor
-            }
-
-            return {
-                score: adjustedScore,
-                passed: adjustedScore >= 3,
-                details: generateTestDetails(testName, adjustedScore),
-                recommendations: generateRecommendations(testName, adjustedScore)
-            };
-        }
-
-        function generateTestDetails(testName, score) {
-            const details = {
-                1: "Critical issues found requiring immediate attention",
-                2: "Significant problems detected that impact performance",
-                3: "Basic requirements met but improvements needed",
-                4: "Good performance with minor optimization opportunities", 
-                5: "Excellent performance meeting best practices"
-            };
-            return details[score];
-        }
-
-        function generateRecommendations(testName, score) {
-            if (score >= 4) return [];
+            // Create comprehensive printable report
+            const reportWindow = window.open('', '_blank');
+            const reportHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Auto Audit Pro - Comprehensive Website Analysis Report</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            margin: 40px; 
+                            line-height: 1.6;
+                            color: #333;
+                        }
+                        .header { 
+                            text-align: center; 
+                            margin-bottom: 40px; 
+                            border-bottom: 3px solid #667eea;
+                            padding-bottom: 20px;
+                        }
+                        .header h1 {
+                            color: #2c3e50;
+                            font-size: 2.5rem;
+                            margin-bottom: 10px;
+                        }
+                        .header .subtitle {
+                            color: #667eea;
+                            font-size: 1.2rem;
+                            margin-bottom: 5px;
+                        }
+                        .header .meta {
+                            color: #666;
+                            font-size: 1rem;
+                        }
+                        .overall-score { 
+                            font-size: 4rem; 
+                            color: ${getOverallScoreColor()}; 
+                            text-align: center; 
+                            margin: 30px 0;
+                            font-weight: bold;
+                        }
+                        .score-summary {
+                            text-align: center;
+                            font-size: 1.5rem;
+                            margin-bottom: 40px;
+                            color: #666;
+                        }
+                        
+                        /* Category Sections */
+                        .category-section { 
+                            margin: 40px 0; 
+                            padding: 25px; 
+                            border: 2px solid #eee; 
+                            border-radius: 10px;
+                            page-break-inside: avoid;
+                        }
+                        .category-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 20px;
+                            padding-bottom: 15px;
+                            border-bottom: 2px solid #f0f0f0;
+                        }
+                        .category-name { 
+                            color: #2c3e50; 
+                            font-size: 1.5rem;
+                            font-weight: bold;
+                        }
+                        .category-score-display {
+                            text-align: center;
+                        }
+                        .category-score { 
+                            font-size: 2.5rem; 
+                            font-weight: bold; 
+                            margin-bottom: 5px;
+                        }
+                        .category-status {
+                            font-size: 1rem;
+                            color: #666;
+                        }
+                        .tests-completed {
+                            color: #888;
+                            font-size: 0.9rem;
+                            margin-top: 5px;
+                        }
+                        
+                        /* Priority Action Items */
+                        .priority-actions {
+                            margin-top: 25px;
+                        }
+                        .priority-title {
+                            font-size: 1.2rem;
+                            color: #2c3e50;
+                            font-weight: bold;
+                            margin-bottom: 15px;
+                        }
+                        .action-item {
+                            margin: 15px 0;
+                            padding: 15px;
+                            border-left: 4px solid;
+                            background: #f9f9f9;
+                            border-radius: 0 5px 5px 0;
+                        }
+                        .action-high { border-left-color: #dc3545; }
+                        .action-medium { border-left-color: #ffc107; }
+                        .action-low { border-left-color: #28a745; }
+                        
+                        .action-priority {
+                            font-weight: bold;
+                            font-size: 0.9rem;
+                            text-transform: uppercase;
+                            margin-bottom: 8px;
+                        }
+                        .priority-high { color: #dc3545; }
+                        .priority-medium { color: #856404; }
+                        .priority-low { color: #155724; }
+                        
+                        .action-source {
+                            font-size: 0.85rem;
+                            color: #666;
+                            margin-bottom: 8px;
+                        }
+                        .action-issue {
+                            font-weight: bold;
+                            margin-bottom: 5px;
+                            color: #333;
+                        }
+                        .action-details {
+                            color: #555;
+                            font-size: 0.9rem;
+                        }
+                        
+                        /* No Issues */
+                        .no-issues {
+                            background: #d4edda;
+                            color: #155724;
+                            padding: 15px;
+                            border-radius: 5px;
+                            text-align: center;
+                            font-weight: bold;
+                        }
+                        
+                        /* Footer */
+                        .report-footer {
+                            margin-top: 50px;
+                            text-align: center;
+                            color: #666;
+                            border-top: 2px solid #eee;
+                            padding-top: 20px;
+                        }
+                        .footer-logo {
+                            font-size: 1.5rem;
+                            color: #667eea;
+                            font-weight: bold;
+                            margin-bottom: 10px;
+                        }
+                        
+                        @media print { 
+                            body { margin: 20px; }
+                            .category-section { page-break-inside: avoid; }
+                            .action-item { page-break-inside: avoid; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <!-- Header Section -->
+                    <div class="header">
+                        <h1>🚗 Auto Audit Pro</h1>
+                        <div class="subtitle">Comprehensive Website Analysis Report</div>
+                        <div class="meta">
+                            <strong>Dealership:</strong> ${getDealershipName()}<br>
+                            <strong>Website:</strong> ${getCurrentDomain()}<br>
+                            <strong>Report Generated:</strong> ${new Date().toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </div>
+                    </div>
+                    
+                    <!-- Overall Score -->
+                    <div class="overall-score">${getOverallScore()}/100</div>
+                    <div class="score-summary">Overall Website Health Score</div>
+                    
+                    <!-- Category Breakdown with Priority Actions -->
+                    ${generateCategoryReportSections(auditData, recommendations)}
+                    
+                    <!-- Footer -->
+                    <div class="report-footer">
+                        <div class="footer-logo">Auto Audit Pro</div>
+                        <p>Professional Automotive Dealership Website Analysis Platform</p>
+                        <p><strong>8-Category Analysis:</strong> Performance • Technical Health • User Experience • SEO & Search</p>
+                        <p>Content Quality • Integration Check • Brand Compliance • Lead Generation</p>
+                        <p style="margin-top: 15px; font-size: 0.9rem;">© 2025 JL Robinson. All Rights Reserved.</p>
+                    </div>
+                </body>
+                </html>
+            `;
             
-            const recommendations = {
-                "Page Load Speed": ["Optimize images and enable compression", "Implement CDN", "Minify CSS/JS"],
-                "Mobile Performance": ["Improve mobile page speed", "Fix mobile usability issues", "Test on various devices"],
-                "SEO Analysis": ["Add missing meta descriptions", "Improve title tags", "Fix broken internal links"],
-                "Accessibility": ["Add alt text to images", "Improve keyboard navigation", "Increase color contrast"],
-                "Lead Forms": ["Simplify form fields", "Add form validation", "Test form submissions"],
-                "Chat Widget": ["Verify chat functionality", "Test response times", "Check mobile compatibility"]
-            };
+            reportWindow.document.write(reportHTML);
+            reportWindow.document.close();
             
-            return recommendations[testName] || ["Review and optimize this component"];
-        }
-
-        function updateTestStatus(testId, status) {
-            const testItem = document.getElementById(testId);
-            if (testItem) {
-                const statusElement = testItem.querySelector('.status');
-                
-                testItem.className = `test-item ${status}`;
-                statusElement.className = `status ${status}`;
-                statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-            }
-        }
-
-        function updateProgress(completed, total) {
-            const percentage = (completed / total) * 100;
-            document.getElementById('progress-fill').style.width = percentage + '%';
-        }
-
-        function updateProgressText(text) {
-            document.getElementById('progress-text').textContent = text;
-        }
-
-        function completeAudit() {
-            // Calculate overall score
-            let totalScore = 0;
-            let testCount = 0;
-
-            Object.values(auditData.results).forEach(category => {
-                Object.values(category).forEach(result => {
-                    totalScore += result.score;
-                    testCount++;
-                });
-            });
-
-            auditData.overallScore = Math.round((totalScore / testCount) * 20); // Convert to 100-point scale
-
-            // Update UI
-            updateProgressText('Audit completed! Generating report...');
-            
+            // Auto-print dialog after content loads
             setTimeout(() => {
-                document.getElementById('progress-section').style.display = 'none';
-                showResults();
+                reportWindow.print();
+            }, 1000);
+        }
+
+        function generateCategoryReportSections(auditData, recommendations) {
+            let sectionsHTML = '';
+            
+            Object.entries(auditData).forEach(([categoryName, categoryData]) => {
+                const score = categoryData.score || 0;
+                const testsCompleted = categoryData.testsCompleted || 'N/A';
+                const status = score >= 4 ? 'Excellent' : score >= 3 ? 'Good' : score >= 2 ? 'Needs Work' : 'Critical Issues';
+                const scoreColor = score >= 4 ? '#28a745' : score >= 3 ? '#ffc107' : '#dc3545';
                 
-                // Reset button
-                document.querySelector('.audit-btn').disabled = false;
-                document.getElementById('btn-text').textContent = 'Start New Analysis';
-            }, 1500);
-        }
-
-        function showResults() {
-            // Show results section
-            document.getElementById('results-section').style.display = 'block';
-            
-            // Update overall score
-            document.getElementById('overall-score').textContent = auditData.overallScore + '/100';
-            
-            // Update score color
-            const scoreElement = document.getElementById('overall-score');
-            if (auditData.overallScore >= 80) scoreElement.style.color = '#28a745';
-            else if (auditData.overallScore >= 60) scoreElement.style.color = '#ffc107';
-            else scoreElement.style.color = '#dc3545';
-
-            // Generate category results
-            generateCategoryResults();
-            
-            // Generate recommendations
-            generateRecommendationsFromAuditData();
-        }
-
-        function generateCategoryResults() {
-            const categoryResults = document.getElementById('category-results');
-            categoryResults.innerHTML = '';
-
-            Object.entries(auditData.results).forEach(([categoryName, tests]) => {
-                const categoryScore = Object.values(tests).reduce((sum, test) => sum + test.score, 0) / Object.keys(tests).length;
-                const roundedScore = Math.round(categoryScore);
-
-                const categoryCard = document.createElement('div');
-                categoryCard.className = 'category-card';
-                categoryCard.innerHTML = `
-                    <h4>${categoryName}</h4>
-                    <div class="category-score score-${roundedScore}">${roundedScore}/5</div>
-                    <p>${generateCategoryDescription(categoryName, roundedScore)}</p>
+                // Get priority actions for this category
+                const categoryActions = recommendations.filter(rec => rec.category === categoryName);
+                
+                sectionsHTML += `
+                    <div class="category-section">
+                        <div class="category-header">
+                            <div class="category-name">${categoryName}</div>
+                            <div class="category-score-display">
+                                <div class="category-score" style="color: ${scoreColor}">${score}/5</div>
+                                <div class="category-status"><strong>Status:</strong> ${status}</div>
+                                <div class="tests-completed"><strong>Tests Completed:</strong> ${testsCompleted}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="priority-actions">
+                            <div class="priority-title">Priority Action Items</div>
+                            ${generatePriorityActionsHTML(categoryActions)}
+                        </div>
+                    </div>
                 `;
-
-                categoryResults.appendChild(categoryCard);
             });
+            
+            return sectionsHTML;
         }
 
-        function generateCategoryDescription(category, score) {
-            const descriptions = {
-                1: "Needs immediate attention",
-                2: "Significant improvements required", 
-                3: "Meets basic requirements",
-                4: "Good performance",
-                5: "Excellent performance"
-            };
-            return descriptions[score];
-        }
-
-        function generateRecommendationsFromAuditData() {
-            const recommendationsList = document.getElementById('recommendations-list');
-            recommendationsList.innerHTML = '';
-
-            const allRecommendations = [];
-
-            Object.values(auditData.results).forEach(category => {
-                Object.values(category).forEach(test => {
-                    if (test.score < 4 && test.recommendations.length > 0) {
-                        test.recommendations.forEach(rec => {
-                            allRecommendations.push({
-                                text: rec,
-                                priority: test.score <= 2 ? 'high' : test.score === 3 ? 'medium' : 'low'
-                            });
-                        });
-                    }
-                });
-            });
-
-            // Sort by priority
-            allRecommendations.sort((a, b) => {
+        function generatePriorityActionsHTML(actions) {
+            if (actions.length === 0) {
+                return '<div class="no-issues">✅ No critical issues found! This category is performing well.</div>';
+            }
+            
+            // Sort actions by priority
+            const sortedActions = actions.sort((a, b) => {
                 const priorityOrder = { high: 0, medium: 1, low: 2 };
                 return priorityOrder[a.priority] - priorityOrder[b.priority];
             });
-
-            // Display top 10 recommendations
-            allRecommendations.slice(0, 10).forEach(rec => {
-                const recElement = document.createElement('div');
-                recElement.className = `recommendation-item priority-${rec.priority}`;
-                recElement.innerHTML = `
-                    <strong>${rec.priority.toUpperCase()} PRIORITY:</strong> ${rec.text}
-                `;
-                recommendationsList.appendChild(recElement);
-            });
-
-            if (allRecommendations.length === 0) {
-                recommendationsList.innerHTML = '<div class="recommendation-item priority-low"><strong>EXCELLENT:</strong> No critical issues found! This website is performing well.</div>';
-            }
+            
+            return sortedActions.map(action => `
+                <div class="action-item action-${action.priority}">
+                    <div class="action-priority priority-${action.priority}">
+                        ${action.priority.toUpperCase()} PRIORITY
+                    </div>
+                    <div class="action-source">${action.category} - ${action.test}</div>
+                    <div class="action-issue"><strong>Issue:</strong> ${action.text}</div>
+                    <div class="action-details"><strong>Details:</strong> ${action.details}</div>
+                </div>
+            `).join('');
         }
 
-        // Enhanced export functions
+        function getCurrentRecommendations() {
+            // Extract recommendations from current display
+            const recommendationElements = document.querySelectorAll('.recommendation-item');
+            const recommendations = [];
+            
+            recommendationElements.forEach(element => {
+                const priorityText = element.querySelector('strong').textContent;
+                const priority = priorityText.includes('HIGH') ? 'high' : 
+                                priorityText.includes('MEDIUM') ? 'medium' : 'low';
+                
+                const sourceText = element.querySelector('span').textContent;
+                const [category, test] = sourceText.split(' - ');
+                
+                const issueText = element.textContent.match(/Issue: (.*?)Details:/)?.[1]?.trim() || '';
+                const detailsText = element.textContent.match(/Details: (.*)$/)?.[1]?.trim() || '';
+                
+                recommendations.push({
+                    priority,
+                    category,
+                    test,
+                    text: issueText,
+                    details: detailsText
+                });
+            });
+            
+            return recommendations;
+        }
+
+        function getCurrentDomain() {
+            return document.getElementById('domain')?.value || 'Unknown Domain';
+        }
+
+        function getOverallScoreColor() {
+            const score = parseInt(getOverallScore());
+            if (score >= 80) return '#28a745';
+            if (score >= 60) return '#ffc107';
+            return '#dc3545';
+        }
+
+        function getCurrentAuditDataEnhanced() {
+            const categoryCards = document.querySelectorAll('.category-card');
+            if (categoryCards.length === 0) return null;
+            
+            const data = {};
+            categoryCards.forEach(card => {
+                const title = card.querySelector('h4')?.textContent;
+                const scoreText = card.querySelector('.category-score')?.textContent;
+                const paragraphs = card.querySelectorAll('p');
+                
+                if (title && scoreText) {
+                    const score = parseInt(scoreText.split('/')[0]);
+                    const testsCompleted = paragraphs[0]?.textContent?.match(/Tests Completed: (\w+)/)?.[1] || 'N/A';
+                    const status = paragraphs[1]?.textContent?.replace('Status: ', '') || 'Unknown';
+                    
+                    data[title] = {
+                        score: score,
+                        testsCompleted: testsCompleted,
+                        status: status,
+                        details: `${title} comprehensive analysis completed`
+                    };
+                }
+            });
+            
+            return Object.keys(data).length > 0 ? data : null;
+        }
+
         function exportToCSV() {
-            const auditData = getCurrentAuditData();
+            const auditData = getCurrentAuditDataEnhanced();
             
             if (!auditData) {
                 alert('No audit data available. Please run an audit first.');
@@ -1051,15 +1167,13 @@
             
             // Add category data
             Object.entries(auditData).forEach(([category, data]) => {
-                if (data.score !== undefined) {
-                    csvRows.push([
-                        category,
-                        `${data.score}/5`,
-                        data.score >= 4 ? 'Excellent' : data.score >= 3 ? 'Good' : 'Needs Work',
-                        data.testsCompleted || 'N/A',
-                        data.details || ''
-                    ]);
-                }
+                csvRows.push([
+                    category,
+                    `${data.score}/5`,
+                    data.status,
+                    data.testsCompleted,
+                    data.details
+                ]);
             });
             
             // Convert to CSV string
@@ -1080,94 +1194,6 @@
             URL.revokeObjectURL(url);
         }
 
-        function exportToPDF() {
-            const auditData = getCurrentAuditData();
-            
-            if (!auditData) {
-                alert('No audit data available. Please run an audit first.');
-                return;
-            }
-            
-            // Create printable report
-            const reportWindow = window.open('', '_blank');
-            const reportHTML = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Comprehensive Website Audit Report</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 40px; }
-                        .header { text-align: center; margin-bottom: 30px; }
-                        .score { font-size: 3rem; color: #28a745; text-align: center; margin: 20px 0; }
-                        .category { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
-                        .category h3 { color: #2c3e50; margin-bottom: 10px; }
-                        .category-score { font-size: 1.5rem; font-weight: bold; }
-                        @media print { body { margin: 20px; } }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>🚗 Comprehensive Website Audit Report</h1>
-                        <h2>${getDealershipName()}</h2>
-                        <p>Generated on ${new Date().toLocaleDateString()}</p>
-                        <p>Powered by Auto Audit Pro - Complete Website Analysis Platform</p>
-                    </div>
-                    
-                    <div class="score">${getOverallScore()}/100</div>
-                    <p style="text-align: center; font-size: 1.2rem; margin-bottom: 30px;">Overall Website Health Score</p>
-                    
-                    ${Object.entries(auditData).map(([category, data]) => `
-                        <div class="category">
-                            <h3>${category}</h3>
-                            <div class="category-score">${data.score}/5</div>
-                            <p><strong>Tests Completed:</strong> ${data.testsCompleted || 'N/A'}</p>
-                            <p><strong>Status:</strong> ${data.score >= 4 ? 'Excellent' : data.score >= 3 ? 'Good' : 'Needs Work'}</p>
-                        </div>
-                    `).join('')}
-                    
-                    <div style="margin-top: 40px; text-align: center; color: #666;">
-                        <p>This comprehensive analysis was generated by Auto Audit Pro</p>
-                        <p>Complete automotive dealership website auditing platform</p>
-                        <p>Performance • SEO • UX • Content • Technical • Integration • Security</p>
-                    </div>
-                </body>
-                </html>
-            `;
-            
-            reportWindow.document.write(reportHTML);
-            reportWindow.document.close();
-            
-            // Auto-print dialog
-            setTimeout(() => {
-                reportWindow.print();
-            }, 500);
-        }
-
-        function getCurrentAuditData() {
-            const categoryCards = document.querySelectorAll('.category-card');
-            if (categoryCards.length === 0) return null;
-            
-            const data = {};
-            categoryCards.forEach(card => {
-                const title = card.querySelector('h4')?.textContent;
-                const scoreText = card.querySelector('.category-score')?.textContent;
-                const testsText = card.querySelector('p')?.textContent;
-                
-                if (title && scoreText) {
-                    const score = parseInt(scoreText.split('/')[0]);
-                    const testsCompleted = testsText?.match(/Tests Completed: (\d+)/)?.[1];
-                    
-                    data[title] = {
-                        score: score,
-                        testsCompleted: testsCompleted,
-                        details: `${title} comprehensive analysis completed`
-                    };
-                }
-            });
-            
-            return Object.keys(data).length > 0 ? data : null;
-        }
-
         function getDealershipName() {
             const domainInput = document.getElementById('domain');
             if (!domainInput || !domainInput.value) return 'Unknown Business';
@@ -1181,19 +1207,19 @@
             
             // Common dealership domain patterns
             if (domainParts.includes('ford')) {
-                const prefix = domainParts.replace('ford', '').replace(/[^a-zA-Z]/g, '');
+                const prefix = domainParts.replace('ford', '').replace(/[^a-zA-Z0-9]/g, '');
                 return prefix ? `${capitalizeFirst(prefix)} Ford` : 'Ford';
             }
             if (domainParts.includes('toyota')) {
-                const prefix = domainParts.replace('toyota', '').replace(/[^a-zA-Z]/g, '');
+                const prefix = domainParts.replace('toyota', '').replace(/[^a-zA-Z0-9]/g, '');
                 return prefix ? `Toyota of ${capitalizeFirst(prefix)}` : 'Toyota';
             }
             if (domainParts.includes('honda')) {
-                const prefix = domainParts.replace('honda', '').replace(/[^a-zA-Z]/g, '');
+                const prefix = domainParts.replace('honda', '').replace(/[^a-zA-Z0-9]/g, '');
                 return prefix ? `${capitalizeFirst(prefix)} Honda` : 'Honda';
             }
             if (domainParts.includes('chevy') || domainParts.includes('chevrolet')) {
-                const prefix = domainParts.replace(/chevy|chevrolet/, '').replace(/[^a-zA-Z]/g, '');
+                const prefix = domainParts.replace(/chevy|chevrolet/, '').replace(/[^a-zA-Z0-9]/g, '');
                 return prefix ? `${capitalizeFirst(prefix)} Chevrolet` : 'Chevrolet';
             }
             
