@@ -50,7 +50,7 @@
             opacity: 0.9;
         }
 
-        /* FIXED: Balanced Feature Showcase Section */
+        /* Enhanced Feature Showcase Section */
         .features-highlight {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -106,6 +106,13 @@
             border-radius: 10px;
             margin-bottom: 30px;
             border: 2px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .mobile-input-group {
@@ -396,7 +403,6 @@
             background: #5a6268;
         }
 
-        /* RESPONSIVE: Mobile adjustments */
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -411,7 +417,6 @@
                 font-size: 1.8rem;
             }
             
-            /* MOBILE: 2x2 grid for smaller screens */
             .features-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 15px;
@@ -491,7 +496,7 @@
             <p>Comprehensive Automotive Dealership Website Analysis Platform</p>
         </div>
 
-        <!-- FIXED: Professional Feature Showcase - 4x4 Grid -->
+        <!-- Professional Feature Showcase -->
         <div class="features-highlight">
             <h3>🔍 Complete Website Health Analysis</h3>
             <div class="features-grid">
@@ -809,6 +814,249 @@
             }
         }
 
+        function createTestGrid() {
+            const testGrid = document.getElementById('test-grid');
+            testGrid.innerHTML = '';
+
+            testCategories.forEach((category, categoryIndex) => {
+                category.tests.forEach((test, testIndex) => {
+                    const testItem = document.createElement('div');
+                    testItem.className = 'test-item';
+                    testItem.id = `test-${categoryIndex}-${testIndex}`;
+                    
+                    testItem.innerHTML = `
+                        <h3>${test}</h3>
+                        <p>${category.name}</p>
+                        <span class="status pending">Pending</span>
+                    `;
+                    
+                    testGrid.appendChild(testItem);
+                });
+            });
+        }
+
+        async function runAuditSequence() {
+            const totalTests = testCategories.reduce((sum, cat) => sum + cat.tests.length, 0);
+            let completedTests = 0;
+
+            for (let categoryIndex = 0; categoryIndex < testCategories.length; categoryIndex++) {
+                const category = testCategories[categoryIndex];
+                auditData.results[category.name] = {};
+
+                for (let testIndex = 0; testIndex < category.tests.length; testIndex++) {
+                    const test = category.tests[testIndex];
+                    const testId = `test-${categoryIndex}-${testIndex}`;
+                    
+                    // Update UI to show running test
+                    updateTestStatus(testId, 'running');
+                    updateProgressText(`Running ${test}...`);
+                    
+                    // Simulate test execution
+                    const result = await simulateTest(category.name, test);
+                    auditData.results[category.name][test] = result;
+                    
+                    // Update test status
+                    updateTestStatus(testId, result.passed ? 'passed' : 'failed');
+                    
+                    completedTests++;
+                    updateProgress(completedTests, totalTests);
+                    
+                    // Add delay for demo purposes
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+            }
+
+            // Complete audit
+            completeAudit();
+        }
+
+        async function simulateTest(category, testName) {
+            // Simulate different test scenarios with realistic results
+            const randomScore = Math.floor(Math.random() * 5) + 1;
+            const passed = randomScore >= 3;
+            
+            // Simulate more realistic failure rates for different test types
+            let adjustedScore = randomScore;
+            if (testName.includes('Speed') || testName.includes('Performance')) {
+                adjustedScore = Math.max(2, randomScore - 1); // Performance often has issues
+            } else if (testName.includes('SEO') || testName.includes('Schema')) {
+                adjustedScore = Math.max(2, randomScore); // SEO usually moderate
+            } else if (testName.includes('Accessibility')) {
+                adjustedScore = Math.max(1, randomScore - 2); // Accessibility often poor
+            }
+
+            return {
+                score: adjustedScore,
+                passed: adjustedScore >= 3,
+                details: generateTestDetails(testName, adjustedScore),
+                recommendations: generateRecommendations(testName, adjustedScore)
+            };
+        }
+
+        function generateTestDetails(testName, score) {
+            const details = {
+                1: "Critical issues found requiring immediate attention",
+                2: "Significant problems detected that impact performance",
+                3: "Basic requirements met but improvements needed",
+                4: "Good performance with minor optimization opportunities", 
+                5: "Excellent performance meeting best practices"
+            };
+            return details[score];
+        }
+
+        function generateRecommendations(testName, score) {
+            if (score >= 4) return [];
+            
+            const recommendations = {
+                "Page Load Speed": ["Optimize images and enable compression", "Implement CDN", "Minify CSS/JS"],
+                "Mobile Performance": ["Improve mobile page speed", "Fix mobile usability issues", "Test on various devices"],
+                "SEO Analysis": ["Add missing meta descriptions", "Improve title tags", "Fix broken internal links"],
+                "Accessibility": ["Add alt text to images", "Improve keyboard navigation", "Increase color contrast"],
+                "Lead Forms": ["Simplify form fields", "Add form validation", "Test form submissions"],
+                "Chat Widget": ["Verify chat functionality", "Test response times", "Check mobile compatibility"]
+            };
+            
+            return recommendations[testName] || ["Review and optimize this component"];
+        }
+
+        function updateTestStatus(testId, status) {
+            const testItem = document.getElementById(testId);
+            if (testItem) {
+                const statusElement = testItem.querySelector('.status');
+                
+                testItem.className = `test-item ${status}`;
+                statusElement.className = `status ${status}`;
+                statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            }
+        }
+
+        function updateProgress(completed, total) {
+            const percentage = (completed / total) * 100;
+            document.getElementById('progress-fill').style.width = percentage + '%';
+        }
+
+        function updateProgressText(text) {
+            document.getElementById('progress-text').textContent = text;
+        }
+
+        function completeAudit() {
+            // Calculate overall score
+            let totalScore = 0;
+            let testCount = 0;
+
+            Object.values(auditData.results).forEach(category => {
+                Object.values(category).forEach(result => {
+                    totalScore += result.score;
+                    testCount++;
+                });
+            });
+
+            auditData.overallScore = Math.round((totalScore / testCount) * 20); // Convert to 100-point scale
+
+            // Update UI
+            updateProgressText('Audit completed! Generating report...');
+            
+            setTimeout(() => {
+                document.getElementById('progress-section').style.display = 'none';
+                showResults();
+                
+                // Reset button
+                document.querySelector('.audit-btn').disabled = false;
+                document.getElementById('btn-text').textContent = 'Start New Analysis';
+            }, 1500);
+        }
+
+        function showResults() {
+            // Show results section
+            document.getElementById('results-section').style.display = 'block';
+            
+            // Update overall score
+            document.getElementById('overall-score').textContent = auditData.overallScore + '/100';
+            
+            // Update score color
+            const scoreElement = document.getElementById('overall-score');
+            if (auditData.overallScore >= 80) scoreElement.style.color = '#28a745';
+            else if (auditData.overallScore >= 60) scoreElement.style.color = '#ffc107';
+            else scoreElement.style.color = '#dc3545';
+
+            // Generate category results
+            generateCategoryResults();
+            
+            // Generate recommendations
+            generateRecommendationsFromAuditData();
+        }
+
+        function generateCategoryResults() {
+            const categoryResults = document.getElementById('category-results');
+            categoryResults.innerHTML = '';
+
+            Object.entries(auditData.results).forEach(([categoryName, tests]) => {
+                const categoryScore = Object.values(tests).reduce((sum, test) => sum + test.score, 0) / Object.keys(tests).length;
+                const roundedScore = Math.round(categoryScore);
+
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'category-card';
+                categoryCard.innerHTML = `
+                    <h4>${categoryName}</h4>
+                    <div class="category-score score-${roundedScore}">${roundedScore}/5</div>
+                    <p>${generateCategoryDescription(categoryName, roundedScore)}</p>
+                `;
+
+                categoryResults.appendChild(categoryCard);
+            });
+        }
+
+        function generateCategoryDescription(category, score) {
+            const descriptions = {
+                1: "Needs immediate attention",
+                2: "Significant improvements required", 
+                3: "Meets basic requirements",
+                4: "Good performance",
+                5: "Excellent performance"
+            };
+            return descriptions[score];
+        }
+
+        function generateRecommendationsFromAuditData() {
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = '';
+
+            const allRecommendations = [];
+
+            Object.values(auditData.results).forEach(category => {
+                Object.values(category).forEach(test => {
+                    if (test.score < 4 && test.recommendations.length > 0) {
+                        test.recommendations.forEach(rec => {
+                            allRecommendations.push({
+                                text: rec,
+                                priority: test.score <= 2 ? 'high' : test.score === 3 ? 'medium' : 'low'
+                            });
+                        });
+                    }
+                });
+            });
+
+            // Sort by priority
+            allRecommendations.sort((a, b) => {
+                const priorityOrder = { high: 0, medium: 1, low: 2 };
+                return priorityOrder[a.priority] - priorityOrder[b.priority];
+            });
+
+            // Display top 10 recommendations
+            allRecommendations.slice(0, 10).forEach(rec => {
+                const recElement = document.createElement('div');
+                recElement.className = `recommendation-item priority-${rec.priority}`;
+                recElement.innerHTML = `
+                    <strong>${rec.priority.toUpperCase()} PRIORITY:</strong> ${rec.text}
+                `;
+                recommendationsList.appendChild(recElement);
+            });
+
+            if (allRecommendations.length === 0) {
+                recommendationsList.innerHTML = '<div class="recommendation-item priority-low"><strong>EXCELLENT:</strong> No critical issues found! This website is performing well.</div>';
+            }
+        }
+
         // ENHANCED PDF EXPORT WITH PRIORITY ACTION ITEMS
         function exportToPDF() {
             const auditData = getCurrentAuditDataEnhanced();
@@ -1097,7 +1345,7 @@
                 const priority = priorityText.includes('HIGH') ? 'high' : 
                                 priorityText.includes('MEDIUM') ? 'medium' : 'low';
                 
-                const sourceText = element.querySelector('span').textContent;
+                const sourceText = element.querySelector('span')?.textContent || '';
                 const [category, test] = sourceText.split(' - ');
                 
                 const issueText = element.textContent.match(/Issue: (.*?)Details:/)?.[1]?.trim() || '';
@@ -1105,8 +1353,8 @@
                 
                 recommendations.push({
                     priority,
-                    category,
-                    test,
+                    category: category || 'General',
+                    test: test || 'Unknown',
                     text: issueText,
                     details: detailsText
                 });
