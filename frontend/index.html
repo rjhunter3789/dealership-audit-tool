@@ -48,57 +48,67 @@
             padding: 40px;
         }
 
-        .input-section {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border: 2px solid #e9ecef;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .input-group label {
-    	    min-width: auto;
-            text-align: center;
-            font-size: 1.2rem;
-            width: 100%;
-            margin-bottom: 5px;
+.input-section {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border: 2px solid #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-        .input-group input {
-            min-width: auto;
-  	    width: 100%;
- 	    max-width: 400px;
- 	    font-size: 18px;
-   	    padding: 18px 20px;
-   	    text-align: center;
-    	    border-radius: 12px;
-} 
+.mobile-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+}
 
-        .input-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+.mobile-input-group label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    text-align: center;
+    width: 100%;
+}
 
-        .audit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 200px;
-        }
+.mobile-input-group input {
+    width: 100%;
+    max-width: 500px;
+    font-size: 18px;
+    padding: 15px 30px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: all 0.3s ease;
+}
+
+.mobile-input-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.audit-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 500px;
+}
 
         .audit-btn:hover {
             transform: translateY(-2px);
@@ -337,70 +347,71 @@
         }
 
         @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 10px;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .input-group {
-                flex-direction: column;
-                align-items: center;
-                gap: 15px;
-            }
+           .container {
+            margin: 10px;
+            border-radius: 10px;
+    }
+    
+    .main-content {
+        padding: 20px;
+    }
+    
+    .header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .mobile-input-group {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
 
-            .input-group label {
-                min-width: auto;
-                text-align: center;
-                font-size: 1.2rem;
-            }
+    .mobile-input-group label {
+        min-width: auto;
+        text-align: center;
+        font-size: 1.2rem;
+    }
 
-            .input-group input {
-                min-width: auto;
-                width: 100%;
-                font-size: 18px;
-                padding: 15px;
-                text-align: center;
-                border-radius: 10px;
-            }
+    .mobile-input-group input {
+        min-width: auto;
+        width: 100%;
+        font-size: 18px;
+        padding: 15px;
+        text-align: center;
+        border-radius: 10px;
+    }
 
-            .audit-btn {
-   		width: 100%;
-    		max-width: 280px;
-  	        font-size: 16px;
-                padding: 16px 20px;
-                border-radius: 12px;
-                margin-top: 5px;
-            }
+    .audit-btn {
+        width: 100%;
+        max-width: 280px;
+        font-size: 16px;
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-top: 5px;
+    }
 
-            .overall-score {
-                font-size: 2.5rem !important;
-            }
-            
-            .category-results {
-                grid-template-columns: 1fr !important;
-                gap: 15px;
-            }
+    .overall-score {
+        font-size: 2.5rem !important;
+    }
+    
+    .category-results {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+    }
 
-            .export-buttons {
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .export-btn {
-                width: 100%;
-                padding: 15px;
-                font-size: 16px;
-            }
-        }
+    .export-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .export-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+    }
+}
+
     </style>
 </head>
 <body>
