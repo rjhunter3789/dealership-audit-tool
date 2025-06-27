@@ -1,3 +1,18 @@
+/*
+ * Auto Audit Pro - Professional Dealership Website Analysis Platform
+ * © 2025 Jeffrey Lee Robinson. All Rights Reserved.
+ * 
+ * Author: Jeffrey Lee Robinson
+ * Contact: nakapaahu@gmail.com
+ * Original Developer: rjhunter3789
+ * Repository: github.com/rjhunter3789/dealership-audit-tool
+ * Technology: Node.js + Express + Selenium WebDriver
+ * 
+ * This software is protected by copyright law.
+ * Unauthorized reproduction or distribution is prohibited.
+ */
+
+// Your existing code continues here...
 // server.js - MVP Backend for Dealership Audit App
 const express = require('express');
 const cors = require('cors');
