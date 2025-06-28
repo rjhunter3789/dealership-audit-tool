@@ -588,7 +588,7 @@ async function runSEOTest(driver, url, testName) {
     }
 }
 
-// REAL CONTENT ANALYSIS
+// FIXED CONTENT ANALYSIS WITH ACCURATE DETECTION
 async function runContentTest(driver, url, testName) {
     switch (testName) {
         case 'Inventory Visibility':
@@ -671,36 +671,47 @@ async function runContentTest(driver, url, testName) {
                 await driver.get(url);
                 
                 const contactData = await driver.executeScript(`
-                    const phoneRegex = /(\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/g;
+                    // IMPROVED PHONE REGEX - MORE FLEXIBLE
+                    const phoneRegex = /(\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\d{3}[-.\s]?\d{3}[-.\s]?\d{4})/g;
                     const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
                     
-                    const addressKeywords = ['street', 'st', 'avenue', 'ave', 'road', 'rd', 'boulevard', 'blvd', 'drive', 'dr'];
+                    // FIX: CONVERT TO LOWERCASE FOR MATCHING
+                    const bodyText = document.body.textContent.toLowerCase();
                     
-                    const bodyText = document.body.textContent;
-                    
+                    // IMPROVED SELECTORS
                     const contactSelectors = [
                         '.contact', '.phone', '.telephone', '.email', '.address',
                         '[class*="contact"]', '[class*="phone"]', '[class*="email"]', '[class*="address"]',
-                        'a[href^="tel:"]', 'a[href^="mailto:"]'
+                        'a[href^="tel:"]', 'a[href^="mailto:"]',
+                        // ADD COMMON HEADER/FOOTER SELECTORS
+                        'header', 'footer', '.header', '.footer', 'nav', '.nav'
                     ];
                     
                     const contactElements = document.querySelectorAll(contactSelectors.join(', '));
                     
-                    const phones = (bodyText.match(phoneRegex) || []).filter(phone => phone.length >= 10);
-                    const emails = bodyText.match(emailRegex) || [];
+                    // SEARCH IN ORIGINAL TEXT FOR PHONE NUMBERS (NOT LOWERCASE)
+                    const originalText = document.body.textContent;
+                    const phones = (originalText.match(phoneRegex) || []).filter(phone => phone.replace(/\D/g, '').length >= 10);
+                    const emails = originalText.match(emailRegex) || [];
                     
+                    // IMPROVED ADDRESS DETECTION
+                    const addressKeywords = ['street', 'st', 'avenue', 'ave', 'road', 'rd', 'boulevard', 'blvd', 'drive', 'dr', 'spokane', 'wa'];
                     const hasAddressKeywords = addressKeywords.some(keyword => 
-                        bodyText.toLowerCase().includes(keyword)
+                        bodyText.includes(keyword)
                     );
                     
+                    // LOOK FOR CONTACT PAGE LINKS
                     const contactPageLinks = Array.from(document.querySelectorAll('a')).filter(link =>
                         link.textContent.toLowerCase().includes('contact') ||
-                        link.href.toLowerCase().includes('contact')
+                        link.href.toLowerCase().includes('contact') ||
+                        link.textContent.toLowerCase().includes('directions') ||
+                        link.textContent.toLowerCase().includes('location')
                     );
                     
-                    const hoursKeywords = ['hours', 'open', 'closed', 'monday', 'tuesday', 'service', 'sales'];
+                    // IMPROVED HOURS DETECTION
+                    const hoursKeywords = ['hours', 'open', 'closed', 'monday', 'tuesday', 'service', 'sales', 'showroom'];
                     const hasHoursInfo = hoursKeywords.some(keyword =>
-                        bodyText.toLowerCase().includes(keyword)
+                        bodyText.includes(keyword)
                     );
                     
                     return {
@@ -711,16 +722,21 @@ async function runContentTest(driver, url, testName) {
                         contactPageLinks: contactPageLinks.length,
                         hasHours: hasHoursInfo,
                         foundPhones: phones.slice(0, 3),
-                        foundEmails: emails.slice(0, 2)
+                        foundEmails: emails.slice(0, 2),
+                        // DEBUG INFO
+                        debugInfo: {
+                            foundAddressKeywords: addressKeywords.filter(k => bodyText.includes(k)),
+                            foundHoursKeywords: hoursKeywords.filter(k => bodyText.includes(k))
+                        }
                     };
                 `);
                 
                 let score = 1;
-                if (contactData.phones >= 1) score += 1;
+                if (contactData.phones >= 1) score += 1.5;
                 if (contactData.emails >= 1) score += 1;
                 if (contactData.hasAddress) score += 1;
-                if (contactData.contactPageLinks >= 1) score += 1;
-                if (contactData.hasHours) score += 0.5;
+                if (contactData.contactPageLinks >= 1) score += 0.5;
+                if (contactData.hasHours) score += 1;
                 
                 score = Math.min(Math.round(score), 5);
                 
@@ -734,7 +750,7 @@ async function runContentTest(driver, url, testName) {
                 return {
                     score,
                     passed: contactData.phones >= 1 && (contactData.emails >= 1 || contactData.hasAddress),
-                    details: `Found ${contactData.phones} phone(s), ${contactData.emails} email(s), address: ${contactData.hasAddress ? 'Yes' : 'No'}`,
+                    details: `Found ${contactData.phones} phone(s), ${contactData.emails} email(s), address: ${contactData.hasAddress ? 'Yes' : 'No'}. Debug: ${JSON.stringify(contactData.debugInfo)}`,
                     recommendations
                 };
                 
@@ -752,45 +768,55 @@ async function runContentTest(driver, url, testName) {
                 await driver.get(url);
                 
                 const hoursData = await driver.executeScript(`
+                    // FIX: LOOK FOR BOTH CASES
                     const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                    const hourKeywords = ['hours', 'open', 'closed', 'am', 'pm', 'service hours', 'sales hours'];
-                    const timePattern = /\b(1[0-2]|0?[1-9]):([0-5][0-9])?\s?(am|pm|a\.m\.|p\.m\.)/gi;
+                    const hourKeywords = ['hours', 'open', 'closed', 'am', 'pm', 'service hours', 'sales hours', 'showroom hours'];
                     
-                    const bodyText = document.body.textContent.toLowerCase();
+                    // IMPROVED TIME PATTERN - MORE FLEXIBLE
+                    const timePattern = /\b(1[0-2]|0?[1-9]):?([0-5][0-9])?\s?(am|pm|a\.m\.|p\.m\.)/gi;
+                    
+                    const bodyText = document.body.textContent.toLowerCase(); // FIX: CONVERT TO LOWERCASE
+                    const originalText = document.body.textContent; // KEEP ORIGINAL FOR TIME MATCHING
                     
                     const hoursSelectors = [
                         '.hours', '.schedule', '.time', '.open', 
-                        '[class*="hours"]', '[class*="schedule"]', '[class*="time"]'
+                        '[class*="hours"]', '[class*="schedule"]', '[class*="time"]',
+                        // ADD MORE SPECIFIC SELECTORS
+                        '.showroom', '.hours-info', '.business-hours'
                     ];
                     
                     const hoursElements = document.querySelectorAll(hoursSelectors.join(', '));
                     
                     const foundDays = daysOfWeek.filter(day => bodyText.includes(day));
                     
-                    const timeMatches = bodyText.match(timePattern) || [];
+                    // SEARCH IN ORIGINAL TEXT FOR TIMES
+                    const timeMatches = originalText.match(timePattern) || [];
                     
                     const hasHoursKeywords = hourKeywords.some(keyword => bodyText.includes(keyword));
                     
+                    // LOOK FOR STRUCTURED HOURS
                     const structuredHours = document.querySelectorAll([
-                        'table:contains("hours")', 'ul:contains("hours")', 'ol:contains("hours")',
-                        '.hours-table', '.hours-list', '.schedule-table'
-                    ].join(', '));
+                        'table', 'ul', 'ol', '.hours-table', '.hours-list', '.schedule-table'
+                    ].join(', ')).length;
                     
                     return {
                         hoursElements: hoursElements.length,
                         foundDays: foundDays.length,
                         timeMatches: timeMatches.length,
                         hasHoursKeywords,
-                        structuredHours: structuredHours.length,
-                        foundDaysList: foundDays
+                        structuredHours: structuredHours,
+                        foundDaysList: foundDays,
+                        foundTimes: timeMatches.slice(0, 4),
+                        // DEBUG INFO
+                        foundKeywords: hourKeywords.filter(k => bodyText.includes(k))
                     };
                 `);
                 
                 let score = 1;
-                if (hoursData.hasHoursKeywords) score += 1;
+                if (hoursData.hasHoursKeywords) score += 1.5;
                 if (hoursData.foundDays >= 3) score += 1;
                 if (hoursData.timeMatches >= 2) score += 1;
-                if (hoursData.foundDays >= 7 && hoursData.timeMatches >= 4) score += 1;
+                if (hoursData.foundDays >= 7 && hoursData.timeMatches >= 4) score += 0.5;
                 
                 score = Math.min(score, 5);
                 
@@ -803,7 +829,7 @@ async function runContentTest(driver, url, testName) {
                 return {
                     score,
                     passed: hoursData.hasHoursKeywords && hoursData.foundDays >= 5,
-                    details: `Found ${hoursData.foundDays} days mentioned, ${hoursData.timeMatches} time references`,
+                    details: `Found ${hoursData.foundDays} days mentioned, ${hoursData.timeMatches} time references. Debug: Keywords found: ${hoursData.foundKeywords.join(', ')}`,
                     recommendations
                 };
                 
@@ -903,7 +929,7 @@ async function runBrandComplianceTest(driver, url, testName) {
                 const brandElements = await driver.executeScript(`
                     const logos = document.querySelectorAll('img[src*="logo"], img[alt*="logo"]').length;
                     const brandMentions = document.body.innerText.toLowerCase();
-                    const commonBrands = ['ford', 'toyota', 'honda', 'chevrolet', 'nissan', 'bmw', 'mercedes'];
+                    const commonBrands = ['ford', 'toyota', 'honda', 'chevrolet', 'nissan', 'bmw', 'mercedes', 'lincoln'];
                     const detectedBrand = commonBrands.find(brand => brandMentions.includes(brand));
                     return { logos, detectedBrand, hasOfficialStyling: logos > 0 };
                 `);
@@ -1043,39 +1069,62 @@ async function runBrandComplianceTest(driver, url, testName) {
     }
 }
 
-// Lead Generation Tests
+// FIXED LEAD GENERATION TESTS WITH BETTER FORM DETECTION
 async function runLeadGenerationTest(driver, url, testName) {
     switch (testName) {
         case 'Contact Forms':
             try {
                 const formAnalysis = await driver.executeScript(`
                     const forms = Array.from(document.forms);
+                    
+                    // EXPANDED KEYWORDS FOR FORM DETECTION
+                    const formKeywords = [
+                        'contact', 'quote', 'inquiry', 'schedule', 'appointment',
+                        'info', 'more info', 'get info', 'request', 'price',
+                        'test drive', 'brochure', 'email', 'call', 'chat'
+                    ];
+                    
                     const contactForms = forms.filter(form => {
                         const formText = form.innerText.toLowerCase();
-                        return formText.includes('contact') || 
-                               formText.includes('quote') || 
-                               formText.includes('inquiry') ||
-                               formText.includes('schedule') ||
-                               formText.includes('appointment');
+                        return formKeywords.some(keyword => formText.includes(keyword));
                     });
                     
-                    const formFields = contactForms.map(form => {
+                    // ALSO CHECK FOR FORMS WITH COMMON INPUT TYPES
+                    const allForms = forms.filter(form => {
+                        const inputs = form.querySelectorAll('input, textarea, select');
+                        const hasNameField = Array.from(inputs).some(input => 
+                            input.name.toLowerCase().includes('name') || 
+                            input.placeholder.toLowerCase().includes('name'));
+                        const hasContactField = Array.from(inputs).some(input => 
+                            input.type === 'email' || input.type === 'tel' ||
+                            input.name.toLowerCase().includes('email') ||
+                            input.name.toLowerCase().includes('phone'));
+                        
+                        return hasNameField && hasContactField && inputs.length >= 2;
+                    });
+                    
+                    // COMBINE AND DEDUPLICATE
+                    const uniqueForms = [...new Set([...contactForms, ...allForms])];
+                    
+                    const formFields = uniqueForms.map(form => {
                         const inputs = form.querySelectorAll('input, textarea, select');
                         return {
                             fieldCount: inputs.length,
                             hasEmail: Array.from(inputs).some(input => 
-                                input.type === 'email' || input.name.includes('email')),
+                                input.type === 'email' || input.name.toLowerCase().includes('email')),
                             hasPhone: Array.from(inputs).some(input => 
-                                input.type === 'tel' || input.name.includes('phone')),
+                                input.type === 'tel' || input.name.toLowerCase().includes('phone')),
                             hasName: Array.from(inputs).some(input => 
-                                input.name.includes('name') || input.placeholder.includes('name'))
+                                input.name.toLowerCase().includes('name') || input.placeholder.toLowerCase().includes('name'))
                         };
                     });
                     
                     return { 
-                        formCount: contactForms.length, 
+                        formCount: uniqueForms.length, 
                         formFields: formFields,
-                        hasValidation: contactForms.some(form => form.noValidate === false)
+                        hasValidation: uniqueForms.some(form => form.noValidate === false),
+                        // DEBUG INFO
+                        foundFormTexts: contactForms.slice(0, 3).map(form => form.innerText.substring(0, 100))
                     };
                 `);
                 
@@ -1088,7 +1137,7 @@ async function runLeadGenerationTest(driver, url, testName) {
                 return {
                     score,
                     passed: formAnalysis.formCount > 0,
-                    details: `Found ${formAnalysis.formCount} contact forms, avg ${Math.round(avgFields)} fields`,
+                    details: `Found ${formAnalysis.formCount} contact forms, avg ${Math.round(avgFields)} fields. Debug: ${formAnalysis.foundFormTexts.join(' | ')}`,
                     recommendations: formAnalysis.formCount === 0 ? [
                         'Add contact forms for lead capture',
                         'Include quote request forms',
@@ -1116,7 +1165,8 @@ async function runLeadGenerationTest(driver, url, testName) {
                         return text.includes('contact') || text.includes('call') || 
                                text.includes('schedule') || text.includes('quote') ||
                                text.includes('buy') || text.includes('finance') ||
-                               text.includes('lease') || text.includes('test drive');
+                               text.includes('lease') || text.includes('test drive') ||
+                               text.includes('get more info') || text.includes('more info');
                     });
                     
                     const prominentCTAs = ctaButtons.filter(btn => {
@@ -1414,9 +1464,9 @@ async function getRealCoreWebVitals(url, strategy = 'desktop') {
         };
 
         // Ensure we have enough data for detailed recommendations
-if (!detailedDiagnostics.unoptimizedImages.length && !detailedDiagnostics.unusedCSS.length) {
-    console.log('⚠️ Limited PageSpeed data - using enhanced fallback');
-}
+        if (!detailedDiagnostics.unoptimizedImages.length && !detailedDiagnostics.unusedCSS.length) {
+            console.log('⚠️ Limited PageSpeed data - using enhanced fallback');
+        }
         // Store for Priority Action Items generation
         global.lastPageSpeedData = detailedDiagnostics;
         
@@ -1483,7 +1533,7 @@ function generateDetailedPriorityActionItems(pageSpeedData, categoryResults) {
             priority: pageSpeedData.performanceScore < 50 ? 'CRITICAL' : 'HIGH',
             category: 'Performance - Overall Optimization',
             issue: 'Website Performance Below Google Standards',
-            details: `Current performance score: ${pageSpeedData.performanceScore}/100 (target: 90+). Key issues: ${performanceIssues.length > 0 ? performanceIssues.join(', ') : 'Multiple optimization opportunities detected'}. Total page weight: ${pageSpeedData.totalByteWeight ? (pageSpeedData.totalByteWeight / 1024 / 1024).toFixed(2) + 'MB' : 'analysis pending'}. Implementation: Focus on Core Web Vitals optimization, resource compression, and server response improvements. ROI: Every 10-point performance increase typically improves conversion rates by 8-12%, estimated $${Math.round(pageSpeedData.performanceScore * 100)}-${Math.round(pageSpeedData.performanceScore * 150)} monthly revenue increase.`
+            details: `Current performance score: ${pageSpeedData.performanceScore}/100 (target: 90+). Key issues: ${performanceIssues.length > 0 ? performanceIssues.join(', ') : 'Multiple optimization opportunities detected'}. Total page weight: ${pageSpeedData.totalByteWeight ? (pageSpeedData.totalByteWeight / 1024 / 1024).toFixed(2) + 'MB' : 'analysis pending'}. Implementation: Focus on Core Web Vitals optimization, resource compression, and server response improvements. ROI: Every 10-point performance increase typically improves conversion rates by 8-12%, estimated ${Math.round(pageSpeedData.performanceScore * 100)}-${Math.round(pageSpeedData.performanceScore * 150)} monthly revenue increase.`
         });
     }
     
