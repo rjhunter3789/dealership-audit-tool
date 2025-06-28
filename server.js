@@ -1,4 +1,3 @@
-// FORCED DEPLOYMENT v2 - Content Analysis Fix
 /*
  * Auto Audit Pro - Professional Dealership Website Analysis Platform
  * © 2025 Jeffrey Lee Robinson. All Rights Reserved.
@@ -590,6 +589,14 @@ async function runSEOTest(driver, url, testName) {
 }
 
 // FIXED CONTENT ANALYSIS WITH ACCURATE DETECTION
+// ===============================================
+// TARGETED FIXES - REPLACE ONLY THESE FUNCTIONS
+// ===============================================
+
+// 🔧 STEP 1: FIND AND REPLACE runContentTest FUNCTION
+// Look for: async function runContentTest(driver, url, testName) {
+// Replace with the function below:
+
 async function runContentTest(driver, url, testName) {
     switch (testName) {
         case 'Inventory Visibility':
@@ -732,6 +739,11 @@ async function runContentTest(driver, url, testName) {
                     };
                 `);
                 
+                // DEBUG OUTPUT
+                console.log('📞 CONTACT INFO DEBUG:', contactData.debugInfo);
+                console.log('📞 Found phones:', contactData.foundPhones);
+                console.log('📞 Contact elements:', contactData.contactElements);
+                
                 let score = 1;
                 if (contactData.phones >= 1) score += 1.5;
                 if (contactData.emails >= 1) score += 1;
@@ -756,6 +768,7 @@ async function runContentTest(driver, url, testName) {
                 };
                 
             } catch (error) {
+                console.error('Contact info analysis error:', error);
                 return {
                     score: 1,
                     passed: false,
@@ -813,6 +826,11 @@ async function runContentTest(driver, url, testName) {
                     };
                 `);
                 
+                // DEBUG OUTPUT
+                console.log('🕐 BUSINESS HOURS DEBUG:', hoursData.foundKeywords);
+                console.log('🕐 Found days:', hoursData.foundDaysList);
+                console.log('🕐 Found times:', hoursData.foundTimes);
+                
                 let score = 1;
                 if (hoursData.hasHoursKeywords) score += 1.5;
                 if (hoursData.foundDays >= 3) score += 1;
@@ -835,6 +853,7 @@ async function runContentTest(driver, url, testName) {
                 };
                 
             } catch (error) {
+                console.error('Business hours analysis error:', error);
                 return {
                     score: 1,
                     passed: false,
@@ -1070,7 +1089,11 @@ async function runBrandComplianceTest(driver, url, testName) {
     }
 }
 
-// FIXED LEAD GENERATION TESTS WITH BETTER FORM DETECTION
+// ===============================================
+// 🔧 STEP 2: FIND AND REPLACE runLeadGenerationTest FUNCTION
+// Look for: async function runLeadGenerationTest(driver, url, testName) {
+// Replace with the function below:
+
 async function runLeadGenerationTest(driver, url, testName) {
     switch (testName) {
         case 'Contact Forms':
@@ -1129,6 +1152,10 @@ async function runLeadGenerationTest(driver, url, testName) {
                     };
                 `);
                 
+                // DEBUG OUTPUT
+                console.log('📝 FORM DETECTION DEBUG:', formAnalysis.foundFormTexts);
+                console.log('📝 Form count:', formAnalysis.formCount);
+                
                 const avgFields = formAnalysis.formFields.length > 0 ? 
                     formAnalysis.formFields.reduce((sum, form) => sum + form.fieldCount, 0) / formAnalysis.formFields.length : 0;
                 
@@ -1149,6 +1176,7 @@ async function runLeadGenerationTest(driver, url, testName) {
                     ] : []
                 };
             } catch (error) {
+                console.error('Contact forms analysis error:', error);
                 return {
                     score: 2,
                     passed: false,
@@ -1403,409 +1431,4 @@ async function getRealCoreWebVitals(url, strategy = 'desktop') {
         }
         global.lastApiCall = Date.now();
         
-        const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
-        const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=${strategy}&key=${API_KEY}&category=performance`;
-        
-        console.log(`🔍 Calling PageSpeed API for ${cleanUrl}...`);
-        
-        const response = await axios.get(apiUrl, { 
-            timeout: 60000,
-            headers: {
-                'User-Agent': 'AutoAuditPro/2.0 (Professional Dealership Analysis)'
-            }
-        });
-        
-        if (response.status !== 200) {
-            throw new Error(`API returned status ${response.status}`);
-        }
-        
-        const data = response.data;
-        
-        // Check for API errors in response
-        if (data.error) {
-            throw new Error(`PageSpeed API Error: ${data.error.message}`);
-        }
-        
-        const lighthouseResult = data.lighthouseResult;
-        if (!lighthouseResult) {
-            throw new Error('No Lighthouse result in API response');
-        }
-        
-        const metrics = lighthouseResult.audits;
-        const performanceScore = Math.round(lighthouseResult?.categories?.performance?.score * 100) || 0;
-        
-        const lcp = metrics?.['largest-contentful-paint']?.numericValue || 0;
-        const fid = metrics?.['max-potential-fid']?.numericValue || 0;
-        const cls = metrics?.['cumulative-layout-shift']?.numericValue || 0;
-        
-        console.log(`✅ PageSpeed API Success - Performance: ${performanceScore}/100, LCP: ${Math.round(lcp)}ms`);
-
-        console.log(`📊 PageSpeed Data Quality: Images=${(metrics?.['uses-optimized-images']?.details?.items || []).length}, CSS=${(metrics?.['unused-css-rules']?.details?.items || []).length}, JS=${(metrics?.['unused-javascript']?.details?.items || []).length}`);
-        
-        // Extract detailed audit information for Priority Action Items
-        const detailedDiagnostics = {
-            unoptimizedImages: metrics?.['uses-optimized-images']?.details?.items || [],
-            unusedCSS: metrics?.['unused-css-rules']?.details?.items || [],
-            unusedJavaScript: metrics?.['unused-javascript']?.details?.items || [],
-            totalByteWeight: metrics?.['total-byte-weight']?.numericValue || 0,
-            serverResponseTime: metrics?.['server-response-time']?.numericValue || 0,
-            renderBlockingResources: metrics?.['render-blocking-resources']?.details?.items || [],
-            efficientCachePolicy: metrics?.['uses-long-cache-ttl']?.details?.items || [],
-            textCompression: metrics?.['uses-text-compression']?.details?.items || [],
-            
-            // Core Web Vitals specific recommendations
-            lcpElement: metrics?.['largest-contentful-paint-element']?.displayValue || '',
-            clsIssues: metrics?.['cumulative-layout-shift']?.details?.items || [],
-            
-            // Performance metrics
-            performanceScore,
-            lcp: Math.round(lcp),
-            fid: Math.round(fid),
-            cls: parseFloat(cls.toFixed(3))
-        };
-
-        // Ensure we have enough data for detailed recommendations
-        if (!detailedDiagnostics.unoptimizedImages.length && !detailedDiagnostics.unusedCSS.length) {
-            console.log('⚠️ Limited PageSpeed data - using enhanced fallback');
-        }
-        // Store for Priority Action Items generation
-        global.lastPageSpeedData = detailedDiagnostics;
-        
-        return detailedDiagnostics;
-        
-    } catch (error) {
-        console.error('❌ Google PageSpeed API error:', error.message);
-        
-        // Try fallback without API key if authentication failed
-        if (error.message.includes('403') || error.message.includes('401')) {
-            console.log('🔄 Trying PageSpeed API without key...');
-            try {
-                const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
-                const fallbackUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=${strategy}&category=performance`;
-                
-                const fallbackResponse = await axios.get(fallbackUrl, { timeout: 45000 });
-                
-                if (fallbackResponse.status === 200 && fallbackResponse.data.lighthouseResult) {
-                    console.log('✅ Fallback API call successful');
-                    const data = fallbackResponse.data;
-                    const lighthouseResult = data.lighthouseResult;
-                    const metrics = lighthouseResult.audits;
-                    const performanceScore = Math.round(lighthouseResult?.categories?.performance?.score * 100) || 0;
-                    
-                    const fallbackData = {
-                        lcp: Math.round(metrics?.['largest-contentful-paint']?.numericValue || 0),
-                        fid: Math.round(metrics?.['max-potential-fid']?.numericValue || 0),
-                        cls: parseFloat((metrics?.['cumulative-layout-shift']?.numericValue || 0).toFixed(3)),
-                        performanceScore,
-                        unoptimizedImages: metrics?.['uses-optimized-images']?.details?.items || [],
-                        unusedCSS: metrics?.['unused-css-rules']?.details?.items || [],
-                        totalByteWeight: metrics?.['total-byte-weight']?.numericValue || 0
-                    };
-                    
-                    global.lastPageSpeedData = fallbackData;
-                    return fallbackData;
-                }
-            } catch (fallbackError) {
-                console.error('❌ Fallback API also failed:', fallbackError.message);
-            }
-        }
-        
-        return null;
-    }
-}
-
-// ENHANCED PRIORITY ACTION ITEMS GENERATION - WORKS WITH ANY PAGESPEED DATA
-function generateDetailedPriorityActionItems(pageSpeedData, categoryResults) {
-    const priorityItems = [];
-    
-    if (!pageSpeedData || !pageSpeedData.performanceScore) {
-        return generateFallbackPriorityItems(categoryResults);
-    }
-    
-    // 1. OVERALL PERFORMANCE ANALYSIS (ALWAYS AVAILABLE)
-    if (pageSpeedData.performanceScore < 90) {
-        let performanceIssues = [];
-        if (pageSpeedData.lcp > 2500) performanceIssues.push(`LCP: ${pageSpeedData.lcp}ms (slow loading)`);
-        if (pageSpeedData.cls > 0.1) performanceIssues.push(`CLS: ${pageSpeedData.cls} (layout shifts)`);
-        if (pageSpeedData.fid > 100) performanceIssues.push(`FID: ${pageSpeedData.fid}ms (interaction delay)`);
-        if (pageSpeedData.serverResponseTime > 200) performanceIssues.push(`Server response: ${pageSpeedData.serverResponseTime}ms`);
-        
-        priorityItems.push({
-            priority: pageSpeedData.performanceScore < 50 ? 'CRITICAL' : 'HIGH',
-            category: 'Performance - Overall Optimization',
-            issue: 'Website Performance Below Google Standards',
-            details: `Current performance score: ${pageSpeedData.performanceScore}/100 (target: 90+). Key issues: ${performanceIssues.length > 0 ? performanceIssues.join(', ') : 'Multiple optimization opportunities detected'}. Total page weight: ${pageSpeedData.totalByteWeight ? (pageSpeedData.totalByteWeight / 1024 / 1024).toFixed(2) + 'MB' : 'analysis pending'}. Implementation: Focus on Core Web Vitals optimization, resource compression, and server response improvements. ROI: Every 10-point performance increase typically improves conversion rates by 8-12%, estimated ${Math.round(pageSpeedData.performanceScore * 100)}-${Math.round(pageSpeedData.performanceScore * 150)} monthly revenue increase.`
-        });
-    }
-    
-    // 2. IMAGE OPTIMIZATION (IF DATA AVAILABLE)
-    if (pageSpeedData.unoptimizedImages && pageSpeedData.unoptimizedImages.length > 0) {
-        const totalSavings = pageSpeedData.unoptimizedImages.reduce((sum, img) => sum + (img.wastedBytes || 0), 0);
-        const topImages = pageSpeedData.unoptimizedImages.slice(0, 3);
-        
-        priorityItems.push({
-            priority: 'CRITICAL',
-            category: 'Performance - Image Optimization',
-            issue: 'Unoptimized Images Detected',
-            details: `Found ${pageSpeedData.unoptimizedImages.length} unoptimized images wasting ${Math.round(totalSavings/1024/1024)}MB. Top issues: ${topImages.map(img => `${img.url.split('/').pop()} (${Math.round(img.wastedBytes/1024)}KB savings)`).join(', ')}. Expected improvement: ${(totalSavings/1024/1024/8*1000).toFixed(1)}ms faster load time. Implementation: Compress using TinyPNG, convert to WebP format, add lazy loading. ROI: Faster loading reduces bounce rate by 15-20%, estimated $8,000-12,000 monthly revenue increase.`
-        });
-    }
-    
-    // 3. UNUSED CSS/JAVASCRIPT (IF DATA AVAILABLE)
-    if (pageSpeedData.unusedCSS && pageSpeedData.unusedCSS.length > 0) {
-        const cssWaste = pageSpeedData.unusedCSS.reduce((sum, css) => sum + (css.wastedBytes || 0), 0);
-        priorityItems.push({
-            priority: cssWaste > 100000 ? 'HIGH' : 'MEDIUM',
-            category: 'Performance - Code Optimization',
-            issue: 'Unused CSS and JavaScript Detected',
-            details: `Found ${Math.round(cssWaste/1024)}KB of unused CSS across ${pageSpeedData.unusedCSS.length} files. Files: ${pageSpeedData.unusedCSS.slice(0, 3).map(css => css.url.split('/').pop()).join(', ')}. Remove unused code or implement code splitting for ${(cssWaste/1024/8*1000).toFixed(0)}ms improvement. Implementation: Use PurgeCSS, implement tree-shaking, lazy load non-critical CSS. ROI: Faster initial render improves conversion rates by 5-8%.`
-        });
-    }
-    
-    // 4. RENDER BLOCKING RESOURCES (IF DATA AVAILABLE)
-    if (pageSpeedData.renderBlockingResources && pageSpeedData.renderBlockingResources.length > 0) {
-        priorityItems.push({
-            priority: 'MEDIUM',
-            category: 'Performance - Resource Loading',
-            issue: 'Render-Blocking Resources Detected',
-            details: `${pageSpeedData.renderBlockingResources.length} render-blocking resources found: ${pageSpeedData.renderBlockingResources.slice(0, 3).map(resource => resource.url.split('/').pop()).join(', ')}. These delay initial page rendering. Implementation: Add async/defer attributes, inline critical CSS, lazy load non-essential scripts. ROI: Faster perceived loading improves user engagement by 12-18%.`
-        });
-    }
-    
-    // 5. SERVER RESPONSE TIME (IF DATA AVAILABLE)
-    if (pageSpeedData.serverResponseTime > 200) {
-        priorityItems.push({
-            priority: pageSpeedData.serverResponseTime > 1000 ? 'HIGH' : 'MEDIUM',
-            category: 'Technical - Server Performance', 
-            issue: 'Slow Server Response Time',
-            details: `Server response time: ${pageSpeedData.serverResponseTime}ms (target: <200ms). This affects all page load metrics and user experience. Current delay costs ${((pageSpeedData.serverResponseTime - 200)/1000*100).toFixed(1)}% of potential visitors due to impatience. Implementation: Implement CDN, optimize database queries, upgrade hosting plan, enable caching. ROI: Server optimization typically improves conversion rates by 10-15%.`
-        });
-    }
-    
-    // 6. CORE WEB VITALS SPECIFIC ISSUES
-    if (pageSpeedData.lcp > 2500 || pageSpeedData.cls > 0.1 || pageSpeedData.fid > 100) {
-        let vitalsIssues = [];
-        if (pageSpeedData.lcp > 2500) vitalsIssues.push(`LCP: ${pageSpeedData.lcp}ms (target: <2500ms)`);
-        if (pageSpeedData.cls > 0.1) vitalsIssues.push(`CLS: ${pageSpeedData.cls} (target: <0.1)`);
-        if (pageSpeedData.fid > 100) vitalsIssues.push(`FID: ${pageSpeedData.fid}ms (target: <100ms)`);
-        
-        priorityItems.push({
-            priority: 'CRITICAL',
-            category: 'SEO - Core Web Vitals',
-            issue: 'Core Web Vitals Need Immediate Attention',
-            details: `Current metrics: ${vitalsIssues.join(', ')}. ${pageSpeedData.lcpElement ? `LCP element: ${pageSpeedData.lcpElement}. ` : ''}These metrics directly impact Google search rankings and user experience. Google uses Core Web Vitals as ranking factors. Implementation: Optimize largest contentful paint element, reserve space for dynamic content, preload critical resources, minimize layout shifts. ROI: Core Web Vitals improvements can increase organic traffic by 10-15% worth $15,000+ monthly.`
-        });
-    }
-    
-    // 7. ADD CATEGORY-SPECIFIC ISSUES FOR COMPREHENSIVE ANALYSIS
-    const categoryPriorities = generateFallbackPriorityItems(categoryResults);
-    const topCategoryIssues = categoryPriorities.slice(0, 3 - priorityItems.length);
-    priorityItems.push(...topCategoryIssues);
-    
-    // 8. ENSURE WE ALWAYS HAVE ACTIONABLE ITEMS
-    if (priorityItems.length < 2) {
-        priorityItems.push({
-            priority: 'HIGH',
-            category: 'Performance - Optimization Opportunities',
-            issue: 'Additional Performance Improvements Available',
-            details: `Performance score: ${pageSpeedData.performanceScore}/100. While no critical issues were detected, there are always opportunities for improvement. Consider implementing advanced optimizations like service workers, resource hints, and progressive loading. Implementation: Conduct detailed performance audit, implement advanced caching strategies, optimize critical rendering path. ROI: Even small improvements compound to significant business impact over time.`
-        });
-    }
-    
-    return priorityItems.slice(0, 8); // Return top 8 priority items
-}
-
-function generateFallbackPriorityItems(categoryResults) {
-    const priorityItems = [];
-    
-    Object.entries(categoryResults).forEach(([categoryName, categoryData]) => {
-        if (categoryData.score < 3) {
-            Object.entries(categoryData.tests || {}).forEach(([testName, testResult]) => {
-                if (testResult.score < 3 && testResult.recommendations && testResult.recommendations.length > 0) {
-                    priorityItems.push({
-                        priority: testResult.score <= 2 ? 'CRITICAL' : 'HIGH',
-                        category: `${categoryName} - ${testName}`,
-                        issue: testResult.recommendations[0] || `${testName} requires attention`,
-                        details: `${testResult.details || 'Analysis completed'} - Current score: ${testResult.score}/5. Recommendations: ${testResult.recommendations.join(' ')} Implementation time: ${getEstimatedTimeToFix(testName)}. ${getROIProjection(categoryName, testName)}.`
-                    });
-                }
-            });
-        }
-    });
-    
-    return priorityItems.slice(0, 8);
-}
-
-function getEstimatedTimeToFix(testName) {
-    const timeMap = {
-        'Meta Tags': '1-2 hours',
-        'Heading Structure': '2-3 hours', 
-        'Schema Markup': '4-6 hours',
-        'SSL Certificate': '1-2 days',
-        'Contact Information': '2-4 hours',
-        'Business Hours': '1-2 hours',
-        'Inventory Visibility': '1-2 weeks',
-        'Contact Forms': '1-2 days',
-        'Chat Integration': '2-3 days'
-    };
-    return timeMap[testName] || '2-4 hours';
-}
-
-function getROIProjection(categoryName, testName) {
-    if (categoryName.includes('Performance')) {
-        return 'Performance improvements typically increase conversion rates by 10-25%';
-    } else if (categoryName.includes('SEO')) {
-        return 'SEO improvements can increase organic traffic by 15-30% within 3-6 months';
-    } else if (categoryName.includes('Lead Generation')) {
-        return 'Lead generation improvements typically increase inquiries by 20-40%';
-    } else if (categoryName.includes('Content')) {
-        return 'Content improvements enhance user engagement and increase time on site by 15-25%';
-    }
-    return 'Fixing this issue will improve overall user experience and business performance';
-}
-
-async function getFallbackCoreWebVitals(driver, url) {
-    try {
-        await driver.get(url);
-        
-        const webVitalsData = await driver.executeAsyncScript(`
-            const callback = arguments[arguments.length - 1];
-            
-            let lcp = 0;
-            new PerformanceObserver((entryList) => {
-                const entries = entryList.getEntries();
-                const lastEntry = entries[entries.length - 1];
-                lcp = lastEntry.startTime;
-            }).observe({ entryTypes: ['largest-contentful-paint'] });
-            
-            let cls = 0;
-            new PerformanceObserver((entryList) => {
-                for (const entry of entryList.getEntries()) {
-                    if (!entry.hadRecentInput) {
-                        cls += entry.value;
-                    }
-                }
-            }).observe({ entryTypes: ['layout-shift'] });
-            
-            setTimeout(() => {
-                callback({
-                    lcp: Math.round(lcp),
-                    fid: 0,
-                    cls: parseFloat(cls.toFixed(3))
-                });
-            }, 3000);
-        `);
-        
-        const score = webVitalsData.lcp <= 2500 && webVitalsData.cls <= 0.1 ? 4 : 3;
-        
-        return {
-            score,
-            passed: webVitalsData.lcp <= 2500 && webVitalsData.cls <= 0.1,
-            details: `LCP: ${webVitalsData.lcp}ms (fallback), CLS: ${webVitalsData.cls} (fallback)`,
-            recommendations: generateCoreWebVitalsRecommendations(webVitalsData.lcp, 0, webVitalsData.cls, 0)
-        };
-        
-    } catch (error) {
-        return {
-            score: 2,
-            passed: false,
-            details: 'Core Web Vitals measurement failed - manual testing required',
-            recommendations: ['Test Core Web Vitals manually with Google PageSpeed Insights']
-        };
-    }
-}
-
-function generateCoreWebVitalsRecommendations(lcp, fid, cls, performanceScore) {
-    const recommendations = [];
-    
-    if (lcp > 2500) {
-        recommendations.push('Reduce Largest Contentful Paint by optimizing images and server response times');
-    }
-    if (lcp > 4000) {
-        recommendations.push('Consider using a Content Delivery Network (CDN)');
-    }
-    
-    if (fid > 100) {
-        recommendations.push('Reduce First Input Delay by minimizing JavaScript execution time');
-    }
-    if (fid > 300) {
-        recommendations.push('Consider code splitting and lazy loading of JavaScript');
-    }
-    
-    if (cls > 0.1) {
-        recommendations.push('Reduce Cumulative Layout Shift by setting dimensions for images and ads');
-    }
-    if (cls > 0.25) {
-        recommendations.push('Avoid inserting content above existing content');
-    }
-    
-    if (performanceScore < 90 && performanceScore > 0) {
-        recommendations.push('Overall performance needs improvement - review Google PageSpeed Insights suggestions');
-    }
-    
-    return recommendations;
-}
-
-function generateCategoryRecommendations(categoryName, results) {
-    // Use detailed PageSpeed data if available for Performance Testing
-    if (global.lastPageSpeedData && categoryName === 'Performance Testing') {
-        const detailedItems = generateDetailedPriorityActionItems(global.lastPageSpeedData, { [categoryName]: { tests: results } });
-        return detailedItems.map(item => `${item.issue}: ${item.details}`);
-    }
-    
-    // Fallback to original recommendations
-    const recommendations = [];
-    Object.values(results).forEach(result => {
-        if (result.score < 4) {
-            recommendations.push(...result.recommendations);
-        }
-    });
-    return [...new Set(recommendations)];
-}
-
-function updateProgress(auditId, message) {
-    const audit = auditResults.get(auditId);
-    if (audit) {
-        audit.currentTest = message;
-    }
-}
-
-function generateAuditId() {
-    return 'audit_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        version: '2.0.0',
-        categories: testCategories.length,
-        features: ['8-category testing', 'real performance data', 'enhanced priority action items']
-    });
-});
-
-// Catch-all handler: serve frontend for any non-API routes
-app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-    }
-});
-
-// Start server
-app.listen(PORT, () => {
-    console.log(`🚗 Auto Audit Pro Server v2.0 running on port ${PORT}`);
-    console.log(`📊 Features:`);
-    console.log(`   ✅ 8-Category Testing System`);
-    console.log(`   ✅ Real Google PageSpeed API Integration`);
-    console.log(`   ✅ Enhanced Priority Action Items with Detailed Analysis`);
-    console.log(`   ✅ Professional Content Analysis`);
-    console.log(`   ✅ Brand Compliance & Lead Generation Tests`);
-    console.log(`📊 API endpoints available:`);
-    console.log(`   POST /api/audit - Start new audit`);
-    console.log(`   GET  /api/audit/:id - Get audit status`);
-    console.log(`   GET  /api/audits - Get audit history`);
-    console.log(`   GET  /api/health - Health check`);
-});
-
-module.exports = app;
+        const cleanUrl = url.startsWith('http') ? url : `https:/
