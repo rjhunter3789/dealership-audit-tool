@@ -589,14 +589,6 @@ async function runSEOTest(driver, url, testName) {
 }
 
 // FIXED CONTENT ANALYSIS WITH ACCURATE DETECTION
-// ===============================================
-// TARGETED FIXES - REPLACE ONLY THESE FUNCTIONS
-// ===============================================
-
-// 🔧 STEP 1: FIND AND REPLACE runContentTest FUNCTION
-// Look for: async function runContentTest(driver, url, testName) {
-// Replace with the function below:
-
 async function runContentTest(driver, url, testName) {
     switch (testName) {
         case 'Inventory Visibility':
@@ -1089,11 +1081,7 @@ async function runBrandComplianceTest(driver, url, testName) {
     }
 }
 
-// ===============================================
-// 🔧 STEP 2: FIND AND REPLACE runLeadGenerationTest FUNCTION
-// Look for: async function runLeadGenerationTest(driver, url, testName) {
-// Replace with the function below:
-
+// FIXED LEAD GENERATION TEST
 async function runLeadGenerationTest(driver, url, testName) {
     switch (testName) {
         case 'Contact Forms':
@@ -1431,4 +1419,384 @@ async function getRealCoreWebVitals(url, strategy = 'desktop') {
         }
         global.lastApiCall = Date.now();
         
-        const cleanUrl = url.startsWith('http') ? url : `https:/
+        const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+        
+        const apiUrl = `https://www.googleapis.com/pagespeed/api/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=${strategy}&key=${API_KEY}&category=PERFORMANCE`;
+        
+        console.log(`🚀 Calling PageSpeed API for ${strategy}: ${cleanUrl}`);
+        
+        const response = await axios.get(apiUrl, {
+            timeout: 30000,
+            headers: {
+                'User-Agent': 'Auto-Audit-Pro/1.0'
+            }
+        });
+        
+        if (!response.data || !response.data.lighthouseResult) {
+            console.warn('Invalid PageSpeed API response');
+            return null;
+        }
+        
+        const lighthouse = response.data.lighthouseResult;
+        const audits = lighthouse.audits;
+        
+        // Extract Core Web Vitals
+        const lcp = audits['largest-contentful-paint']?.numericValue || 0;
+        const fid = audits['max-potential-fid']?.numericValue || audits['total-blocking-time']?.numericValue || 0;
+        const cls = audits['cumulative-layout-shift']?.numericValue || 0;
+        const performanceScore = Math.round((lighthouse.categories.performance?.score || 0) * 100);
+        
+        // Extract detailed metrics for Priority Action Items
+        const ttfb = audits['server-response-time']?.numericValue || 0;
+        const fcp = audits['first-contentful-paint']?.numericValue || 0;
+        const speedIndex = audits['speed-index']?.numericValue || 0;
+        const totalByteWeight = audits['total-byte-weight']?.numericValue || 0;
+        
+        // Extract opportunities for recommendations
+        const opportunities = lighthouse.audits;
+        const unoptimizedImages = opportunities['uses-optimized-images']?.details?.items || [];
+        const unusedCSS = opportunities['unused-css-rules']?.details?.items || [];
+        const unusedJavaScript = opportunities['unused-javascript']?.details?.items || [];
+        const renderBlockingResources = opportunities['render-blocking-resources']?.details?.items || [];
+        
+        const pageSpeedData = {
+            lcp: Math.round(lcp),
+            fid: Math.round(fid),
+            cls: parseFloat(cls.toFixed(3)),
+            performanceScore,
+            ttfb: Math.round(ttfb),
+            fcp: Math.round(fcp),
+            speedIndex: Math.round(speedIndex),
+            totalByteWeight,
+            unoptimizedImages,
+            unusedCSS,
+            unusedJavaScript,
+            renderBlockingResources,
+            strategy
+        };
+        
+        // Store globally for Priority Action Items generation
+        global.lastPageSpeedData = pageSpeedData;
+        
+        console.log(`✅ PageSpeed data received: Performance ${performanceScore}/100, LCP ${lcp}ms, CLS ${cls}`);
+        
+        return pageSpeedData;
+        
+    } catch (error) {
+        console.error('PageSpeed API error:', error.message);
+        if (error.response?.status === 429) {
+            console.warn('PageSpeed API rate limit exceeded');
+        }
+        return null;
+    }
+}
+
+async function getFallbackCoreWebVitals(driver, url) {
+    try {
+        const startTime = Date.now();
+        await driver.get(url);
+        
+        // Wait for page to load
+        await driver.wait(until.elementLocated(By.tagName('body')), 10000);
+        
+        const loadTime = Date.now() - startTime;
+        
+        // Simple scoring based on load time
+        let score = 5;
+        if (loadTime > 2500) score = 4;
+        if (loadTime > 4000) score = 3;
+        if (loadTime > 6000) score = 2;
+        if (loadTime > 8000) score = 1;
+        
+        return {
+            score,
+            passed: loadTime <= 2500,
+            details: `Fallback measurement: ${loadTime}ms load time`,
+            recommendations: loadTime > 2500 ? [
+                'Optimize page loading performance',
+                'Reduce server response time',
+                'Optimize images and resources'
+            ] : []
+        };
+    } catch (error) {
+        return {
+            score: 2,
+            passed: false,
+            details: 'Core Web Vitals measurement failed',
+            recommendations: ['Test page performance manually']
+        };
+    }
+}
+
+function generateCoreWebVitalsRecommendations(lcp, fid, cls, performanceScore) {
+    const recommendations = [];
+    
+    if (lcp > 2500) {
+        recommendations.push('Optimize Largest Contentful Paint (LCP)');
+        recommendations.push('Optimize server response times');
+        recommendations.push('Optimize and compress images');
+    }
+    
+    if (fid > 100) {
+        recommendations.push('Reduce First Input Delay (FID)');
+        recommendations.push('Minimize main thread work');
+        recommendations.push('Remove unused JavaScript');
+    }
+    
+    if (cls > 0.1) {
+        recommendations.push('Improve Cumulative Layout Shift (CLS)');
+        recommendations.push('Set size attributes on images and videos');
+        recommendations.push('Avoid inserting content above existing content');
+    }
+    
+    if (performanceScore < 90) {
+        recommendations.push('Improve overall page performance');
+        recommendations.push('Enable text compression');
+        recommendations.push('Use efficient image formats');
+    }
+    
+    return recommendations;
+}
+
+// ENHANCED PRIORITY ACTION ITEMS WITH REAL PERFORMANCE DATA
+function generateDetailedPriorityActionItems(pageSpeedData, auditResults) {
+    const priorityItems = [];
+    
+    // PERFORMANCE-BASED PRIORITY ITEMS (using real PageSpeed data)
+    if (pageSpeedData) {
+        const { performanceScore, lcp, fid, cls, totalByteWeight, unoptimizedImages, unusedCSS, renderBlockingResources } = pageSpeedData;
+        
+        // Critical Performance Issues
+        if (performanceScore < 50) {
+            priorityItems.push({
+                priority: 'CRITICAL',
+                category: 'Performance',
+                issue: 'Website Performance Below Google Standards',
+                impact: 'High - Significantly impacts user experience and SEO rankings',
+                description: `Performance score is ${performanceScore}/100, well below Google's recommended 90+. This severely impacts user experience and search rankings.`,
+                actionSteps: [
+                    'Optimize server response time (currently slow)',
+                    'Compress and optimize all images',
+                    'Minimize CSS and JavaScript files',
+                    'Enable browser caching',
+                    'Use a Content Delivery Network (CDN)'
+                ],
+                estimatedROI: 'High - Better performance directly improves conversion rates',
+                timeToImplement: '2-4 weeks',
+                costEstimate: '$2,000-$5,000'
+            });
+        }
+        
+        // LCP Issues
+        if (lcp > 2500) {
+            priorityItems.push({
+                priority: 'HIGH',
+                category: 'Performance',
+                issue: 'Slow Largest Contentful Paint (LCP)',
+                impact: 'High - Users see content slowly, leading to higher bounce rates',
+                description: `LCP is ${lcp}ms, exceeding Google's 2.5s threshold. Users wait too long to see main content.`,
+                actionSteps: [
+                    'Optimize server response time',
+                    'Optimize and compress hero images',
+                    'Remove render-blocking resources',
+                    'Use preload for critical resources'
+                ],
+                estimatedROI: 'High - Faster content display improves engagement',
+                timeToImplement: '1-2 weeks',
+                costEstimate: '$1,000-$3,000'
+            });
+        }
+        
+        // Large Page Size
+        if (totalByteWeight > 3000000) { // 3MB
+            priorityItems.push({
+                priority: 'MEDIUM',
+                category: 'Performance',
+                issue: 'Excessive Page Size',
+                impact: 'Medium - Slower loading on mobile and slower connections',
+                description: `Page size is ${(totalByteWeight / 1024 / 1024).toFixed(2)}MB, which is large for web standards.`,
+                actionSteps: [
+                    'Compress all images to WebP format',
+                    'Minify CSS and JavaScript',
+                    'Remove unused code and assets',
+                    'Implement lazy loading for images'
+                ],
+                estimatedROI: 'Medium - Faster loading improves user experience',
+                timeToImplement: '1 week',
+                costEstimate: '$500-$1,500'
+            });
+        }
+        
+        // Image Optimization
+        if (unoptimizedImages && unoptimizedImages.length > 0) {
+            priorityItems.push({
+                priority: 'MEDIUM',
+                category: 'Performance',
+                issue: 'Unoptimized Images Slowing Site',
+                impact: 'Medium - Images are larger than necessary, slowing page loads',
+                description: `${unoptimizedImages.length} images can be optimized to improve loading speed.`,
+                actionSteps: [
+                    'Convert images to modern formats (WebP, AVIF)',
+                    'Compress images without quality loss',
+                    'Implement responsive images',
+                    'Add proper image sizing attributes'
+                ],
+                estimatedROI: 'Medium - Faster image loading improves user experience',
+                timeToImplement: '3-5 days',
+                costEstimate: '$300-$800'
+            });
+        }
+    }
+    
+    // CONTENT ANALYSIS PRIORITY ITEMS
+    const contentResults = auditResults['Content Analysis'];
+    if (contentResults && contentResults.tests) {
+        // Contact Information Issues
+        const contactTest = contentResults.tests['Contact Information'];
+        if (contactTest && contactTest.score < 4) {
+            priorityItems.push({
+                priority: 'HIGH',
+                category: 'Lead Generation',
+                issue: 'Contact Information Not Prominently Displayed',
+                impact: 'High - Customers cannot easily find ways to contact dealership',
+                description: 'Contact information is missing or hard to find, preventing potential customers from reaching out.',
+                actionSteps: [
+                    'Add phone number to header/footer',
+                    'Create dedicated contact page',
+                    'Include address with Google Maps integration',
+                    'Add business hours clearly visible'
+                ],
+                estimatedROI: 'High - Direct impact on lead generation',
+                timeToImplement: '2-3 days',
+                costEstimate: '$200-$500'
+            });
+        }
+        
+        // Business Hours Issues
+        const hoursTest = contentResults.tests['Business Hours'];
+        if (hoursTest && hoursTest.score < 3) {
+            priorityItems.push({
+                priority: 'MEDIUM',
+                category: 'Customer Experience',
+                issue: 'Business Hours Information Missing or Unclear',
+                impact: 'Medium - Customers unsure when dealership is open',
+                description: 'Business hours are not clearly displayed, causing customer confusion about when to visit.',
+                actionSteps: [
+                    'Add structured hours table',
+                    'Include separate sales and service hours',
+                    'Make hours visible on homepage',
+                    'Add schema markup for hours'
+                ],
+                estimatedROI: 'Medium - Reduces customer confusion and phone calls',
+                timeToImplement: '1-2 days',
+                costEstimate: '$100-$300'
+            });
+        }
+    }
+    
+    // LEAD GENERATION PRIORITY ITEMS
+    const leadGenResults = auditResults['Lead Generation'];
+    if (leadGenResults && leadGenResults.tests) {
+        const formsTest = leadGenResults.tests['Contact Forms'];
+        if (formsTest && formsTest.score < 3) {
+            priorityItems.push({
+                priority: 'CRITICAL',
+                category: 'Lead Generation',
+                issue: 'Missing Lead Capture Forms',
+                impact: 'Critical - No way to capture customer inquiries online',
+                description: 'Website lacks forms for customers to request information, schedule appointments, or get quotes.',
+                actionSteps: [
+                    'Add quote request form',
+                    'Implement service appointment scheduling',
+                    'Create test drive request form',
+                    'Add newsletter signup form',
+                    'Integrate forms with CRM system'
+                ],
+                estimatedROI: 'Very High - Direct impact on lead generation and sales',
+                timeToImplement: '1-2 weeks',
+                costEstimate: '$1,500-$3,000'
+            });
+        }
+    }
+    
+    // SEO PRIORITY ITEMS
+    const seoResults = auditResults['SEO Analysis'];
+    if (seoResults && seoResults.tests) {
+        const metaTest = seoResults.tests['Meta Tags'];
+        if (metaTest && metaTest.score < 4) {
+            priorityItems.push({
+                priority: 'MEDIUM',
+                category: 'SEO',
+                issue: 'Missing or Poor Meta Tags',
+                impact: 'Medium - Reduced search engine visibility',
+                description: 'Page title and meta descriptions are missing or not optimized for search engines.',
+                actionSteps: [
+                    'Add descriptive page titles',
+                    'Write compelling meta descriptions',
+                    'Include target keywords naturally',
+                    'Ensure unique meta tags for each page'
+                ],
+                estimatedROI: 'Medium - Improved search rankings over time',
+                timeToImplement: '3-5 days',
+                costEstimate: '$300-$800'
+            });
+        }
+    }
+    
+    // Sort by priority (CRITICAL > HIGH > MEDIUM > LOW)
+    const priorityOrder = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+    priorityItems.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+    
+    // Limit to top 5 most important items
+    return priorityItems.slice(0, 5);
+}
+
+function generateCategoryRecommendations(categoryName, results) {
+    const recommendations = [];
+    
+    Object.values(results).forEach(result => {
+        if (result.recommendations) {
+            recommendations.push(...result.recommendations);
+        }
+    });
+    
+    // Remove duplicates and return top 3
+    return [...new Set(recommendations)].slice(0, 3);
+}
+
+function updateProgress(auditId, message) {
+    const audit = auditResults.get(auditId);
+    if (audit) {
+        audit.currentTask = message;
+        console.log(`Audit ${auditId}: ${message}`);
+    }
+}
+
+function generateAuditId() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        activeAudits: auditResults.size 
+    });
+});
+
+// Serve frontend
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
+
+// Start server
+app.listen(PORT, () => {
+    console.log(`🚀 Auto Audit Pro server running on port ${PORT}`);
+    console.log(`🌐 Frontend available at http://localhost:${PORT}`);
+    console.log(`📊 API endpoints:`);
+    console.log(`   POST /api/audit - Start new audit`);
+    console.log(`   GET /api/audit/:id - Get audit status`);
+    console.log(`   GET /api/audits - Get audit history`);
+    console.log(`   GET /health - Health check`);
+});
