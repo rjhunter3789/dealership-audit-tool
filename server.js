@@ -1,3 +1,4 @@
+// FORCED DEPLOYMENT v2 - Content Analysis Fix
 /*
  * Auto Audit Pro - Professional Dealership Website Analysis Platform
  * © 2025 Jeffrey Lee Robinson. All Rights Reserved.
