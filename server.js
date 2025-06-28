@@ -1384,6 +1384,8 @@ async function getRealCoreWebVitals(url, strategy = 'desktop') {
         const cls = metrics?.['cumulative-layout-shift']?.numericValue || 0;
         
         console.log(`✅ PageSpeed API Success - Performance: ${performanceScore}/100, LCP: ${Math.round(lcp)}ms`);
+
+        console.log(`📊 PageSpeed Data Quality: Images=${(metrics?.['uses-optimized-images']?.details?.items || []).length}, CSS=${(metrics?.['unused-css-rules']?.details?.items || []).length}, JS=${(metrics?.['unused-javascript']?.details?.items || []).length}`);
         
         // Extract detailed audit information for Priority Action Items
         const detailedDiagnostics = {
@@ -1406,7 +1408,11 @@ async function getRealCoreWebVitals(url, strategy = 'desktop') {
             fid: Math.round(fid),
             cls: parseFloat(cls.toFixed(3))
         };
-        
+
+        // Ensure we have enough data for detailed recommendations
+if (!detailedDiagnostics.unoptimizedImages.length && !detailedDiagnostics.unusedCSS.length) {
+    console.log('⚠️ Limited PageSpeed data - using enhanced fallback');
+}
         // Store for Priority Action Items generation
         global.lastPageSpeedData = detailedDiagnostics;
         
@@ -1422,7 +1428,7 @@ async function getRealCoreWebVitals(url, strategy = 'desktop') {
                 const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
                 const fallbackUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=${strategy}&category=performance`;
                 
-                const fallbackResponse = await axios.get(fallbackUrl, { timeout: 30000 });
+                const fallbackResponse = await axios.get(fallbackUrl, { timeout: 45000 });
                 
                 if (fallbackResponse.status === 200 && fallbackResponse.data.lighthouseResult) {
                     console.log('✅ Fallback API call successful');
