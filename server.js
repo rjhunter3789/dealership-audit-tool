@@ -1354,7 +1354,7 @@ async function getRealCoreWebVitals(url, strategy = 'desktop') {
         console.log(`🔍 Calling PageSpeed API for ${cleanUrl}...`);
         
         const response = await axios.get(apiUrl, { 
-            timeout: 45000,
+            timeout: 60000,
             headers: {
                 'User-Agent': 'AutoAuditPro/2.0 (Professional Dealership Analysis)'
             }
