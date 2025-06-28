@@ -139,7 +139,11 @@ async function runAudit(auditId, domain) {
 
         // Generate detailed Priority Action Items
         updateProgress(auditId, 'Generating Priority Action Items...');
+        console.log('🔍 Generating Priority Action Items with data:', global.lastPageSpeedData ? 'PageSpeed data available' : 'No PageSpeed data');
+        console.log('🔍 PageSpeed data details:', global.lastPageSpeedData ? `Performance: ${global.lastPageSpeedData.performanceScore}, LCP: ${global.lastPageSpeedData.lcp}` : 'None');
         audit.priorityActionItems = generateDetailedPriorityActionItems(global.lastPageSpeedData, audit.results);
+        console.log('📊 Generated Priority Items count:', audit.priorityActionItems.length);
+        console.log('📊 First Priority Item:', audit.priorityActionItems[0] ? audit.priorityActionItems[0].issue : 'None');
 
         // Calculate overall score
         audit.overallScore = Math.round(totalScore * 20); // Convert to 100-point scale
