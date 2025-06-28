@@ -4,11 +4,7 @@
  * 
  * Author: Jeffrey Lee Robinson
  * Contact: nakapaahu@gmail.com
- * Original Developer: rjhunter3789
- * Repository: github.com/rjhunter3789/dealership-audit-tool
- * Technology: Node.js + Express + Selenium WebDriver
- * 
- * UPDATED: 8-Category System + Phase 4 Dealer Group Features
+ * Technology: Node.js + Express + Selenium WebDriver + Real Performance APIs
  * 
  * This software is protected by copyright law.
  * Unauthorized reproduction or distribution is prohibited.
@@ -22,30 +18,31 @@ const axios = require('axios');
 const fs = require('fs').promises;
 const path = require('path');
 
+// Load environment variables
+require('dotenv').config();
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-// Serve static frontend files from 'frontend' directory
 app.use(express.static('frontend'));
-app.use(express.static('public')); // Keep this for any other static files
+app.use(express.static('public'));
 
-// In-memory storage for MVP (replace with database later)
+// In-memory storage for MVP
 let auditResults = new Map();
 let auditHistory = [];
-let dealerGroupData = new Map(); // Phase 4: Store dealer group information
 
 // Configure Chrome options for Selenium
 const chromeOptions = new chrome.Options();
-chromeOptions.addArguments('--headless'); // Run headless for server deployment
+chromeOptions.addArguments('--headless');
 chromeOptions.addArguments('--no-sandbox');
 chromeOptions.addArguments('--disable-dev-shm-usage');
 chromeOptions.addArguments('--disable-gpu');
 chromeOptions.addArguments('--window-size=1920,1080');
 
-// UPDATED: 8-Category Test System
+// 8-Category Test System
 const testCategories = [
     { name: 'Basic Connectivity', weight: 0.12 },
     { name: 'Performance Testing', weight: 0.18 },
@@ -53,8 +50,8 @@ const testCategories = [
     { name: 'User Experience', weight: 0.15 },
     { name: 'Content Analysis', weight: 0.15 },
     { name: 'Technical Validation', weight: 0.10 },
-    { name: 'Brand Compliance', weight: 0.08 },      // NEW
-    { name: 'Lead Generation', weight: 0.07 }        // NEW
+    { name: 'Brand Compliance', weight: 0.08 },
+    { name: 'Lead Generation', weight: 0.07 }
 ];
 
 // Main audit endpoint
@@ -68,9 +65,6 @@ app.post('/api/audit', async (req, res) => {
     const auditId = generateAuditId();
     const startTime = new Date();
     
-    // Phase 4: Detect if this is a dealer group
-    const groupInfo = await detectDealerGroup(domain);
-    
     // Initialize audit result
     auditResults.set(auditId, {
         id: auditId,
@@ -79,8 +73,7 @@ app.post('/api/audit', async (req, res) => {
         progress: 0,
         startTime,
         results: {},
-        overallScore: 0,
-        groupInfo: groupInfo // Phase 4: Include group information
+        overallScore: 0
     });
 
     // Start audit in background
@@ -93,7 +86,7 @@ app.post('/api/audit', async (req, res) => {
         }
     });
 
-    res.json({ auditId, status: 'started', groupInfo });
+    res.json({ auditId, status: 'started' });
 });
 
 // Get audit status endpoint
@@ -106,26 +99,6 @@ app.get('/api/audit/:auditId', (req, res) => {
     }
     
     res.json(audit);
-});
-
-// Phase 4: New endpoint for dealer group pricing
-app.post('/api/pricing/enterprise', (req, res) => {
-    const { groupType, auditCount } = req.body;
-    
-    const pricing = calculateEnterprisePricing({ groupType }, auditCount);
-    res.json(pricing);
-});
-
-// Phase 4: New endpoint for group reports
-app.get('/api/group-report/:groupId', (req, res) => {
-    const { groupId } = req.params;
-    const groupData = dealerGroupData.get(groupId);
-    
-    if (!groupData) {
-        return res.status(404).json({ error: 'Group data not found' });
-    }
-    
-    res.json(groupData);
 });
 
 // Get audit history
@@ -169,20 +142,13 @@ async function runAudit(auditId, domain) {
         audit.endTime = new Date();
         audit.duration = audit.endTime - audit.startTime;
 
-        // Phase 4: If this is a dealer group, generate group report
-        if (audit.groupInfo && audit.groupInfo.isGroup) {
-            const groupReport = generateGroupReport([audit], audit.groupInfo);
-            audit.groupReport = groupReport;
-        }
-
         // Add to history
         auditHistory.unshift({
             id: auditId,
             domain,
             score: audit.overallScore,
             completedAt: audit.endTime,
-            duration: audit.duration,
-            isGroup: audit.groupInfo?.isGroup || false
+            duration: audit.duration
         });
 
         // Keep only last 50 audits in history
@@ -244,9 +210,9 @@ async function runIndividualTest(driver, url, testName, category) {
             return await runContentTest(driver, url, testName);
         case 'Technical Validation':
             return await runTechnicalTest(driver, url, testName);
-        case 'Brand Compliance':                                    // NEW
+        case 'Brand Compliance':
             return await runBrandComplianceTest(driver, url, testName);
-        case 'Lead Generation':                                     // NEW
+        case 'Lead Generation':
             return await runLeadGenerationTest(driver, url, testName);
         default:
             throw new Error(`Unknown category: ${category}`);
@@ -325,6 +291,7 @@ async function runConnectivityTest(driver, url, testName) {
     }
 }
 
+// REAL PERFORMANCE TESTING WITH GOOGLE PAGESPEED API
 async function runPerformanceTest(driver, url, testName) {
     switch (testName) {
         case 'Page Load Speed':
@@ -356,36 +323,59 @@ async function runPerformanceTest(driver, url, testName) {
             }
 
         case 'Core Web Vitals':
+            // REAL Core Web Vitals using Google PageSpeed Insights API
             try {
-                const performanceMetrics = await driver.executeScript(`
-                    return new Promise((resolve) => {
-                        setTimeout(() => {
-                            resolve({
-                                lcp: Math.random() * 4000 + 1000,
-                                fid: Math.random() * 200 + 50,
-                                cls: Math.random() * 0.3
-                            });
-                        }, 1000);
-                    });
-                `);
+                const pageSpeedData = await getRealCoreWebVitals(url);
+                
+                if (!pageSpeedData) {
+                    throw new Error('PageSpeed API unavailable');
+                }
+                
+                const { lcp, fid, cls, performanceScore } = pageSpeedData;
+                
+                // Score based on Google's thresholds
+                let score = 5;
+                if (lcp > 2500 || fid > 100 || cls > 0.1) score = 4;
+                if (lcp > 4000 || fid > 300 || cls > 0.25) score = 3;
+                if (lcp > 6000 || fid > 500 || cls > 0.4) score = 2;
+                if (lcp > 8000 || fid > 1000 || cls > 0.6) score = 1;
                 
                 return {
-                    score: 4,
-                    passed: true,
-                    details: 'Core Web Vitals measured',
-                    recommendations: ['Monitor Core Web Vitals regularly', 'Optimize largest contentful paint']
+                    score,
+                    passed: lcp <= 2500 && fid <= 100 && cls <= 0.1,
+                    details: `LCP: ${lcp}ms, FID: ${fid}ms, CLS: ${cls.toFixed(3)}, Performance: ${performanceScore}/100`,
+                    recommendations: generateCoreWebVitalsRecommendations(lcp, fid, cls, performanceScore),
+                    rawData: { lcp, fid, cls, performanceScore }
                 };
             } catch (error) {
-                return {
-                    score: 3,
-                    passed: false,
-                    details: 'Could not measure Core Web Vitals',
-                    recommendations: ['Implement performance monitoring']
-                };
+                console.error('Core Web Vitals API failed, using fallback measurement:', error);
+                // Fallback to manual measurement if API fails
+                return await getFallbackCoreWebVitals(driver, url);
             }
 
         case 'Mobile Performance':
             try {
+                // Get mobile PageSpeed data
+                const mobilePageSpeedData = await getRealCoreWebVitals(url, 'mobile');
+                
+                if (mobilePageSpeedData) {
+                    const { performanceScore, lcp } = mobilePageSpeedData;
+                    const score = performanceScore >= 90 ? 5 : performanceScore >= 70 ? 4 : performanceScore >= 50 ? 3 : performanceScore >= 30 ? 2 : 1;
+                    
+                    return {
+                        score,
+                        passed: performanceScore >= 70,
+                        details: `Mobile Performance Score: ${performanceScore}/100, Mobile LCP: ${lcp}ms`,
+                        recommendations: performanceScore < 70 ? [
+                            'Optimize images for mobile devices',
+                            'Reduce server response times',
+                            'Minimize main thread work',
+                            'Ensure text remains visible during webfont load'
+                        ] : []
+                    };
+                }
+                
+                // Fallback to viewport testing
                 await driver.manage().window().setRect({ width: 375, height: 667 });
                 await driver.get(url);
                 
@@ -397,20 +387,52 @@ async function runPerformanceTest(driver, url, testName) {
                 return {
                     score: isResponsive ? 4 : 2,
                     passed: isResponsive,
-                    details: isResponsive ? 'Mobile performance acceptable' : 'Mobile performance issues detected',
-                    recommendations: isResponsive ? [] : ['Optimize for mobile devices', 'Fix responsive design issues']
+                    details: isResponsive ? 'Mobile viewport responsive' : 'Mobile responsiveness issues detected',
+                    recommendations: isResponsive ? [] : ['Fix responsive design issues', 'Optimize for mobile devices']
                 };
             } catch (error) {
                 return {
                     score: 2,
                     passed: false,
                     details: 'Mobile performance test failed',
-                    recommendations: ['Test mobile compatibility']
+                    recommendations: ['Test mobile compatibility manually']
                 };
             }
 
         case 'Resource Optimization':
             try {
+                // Get detailed resource data from PageSpeed
+                const pageSpeedData = await getRealCoreWebVitals(url);
+                
+                if (pageSpeedData && pageSpeedData.diagnostics) {
+                    const { 
+                        unoptimizedImages, 
+                        unusedCSS, 
+                        unusedJavaScript,
+                        totalByteWeight 
+                    } = pageSpeedData.diagnostics;
+                    
+                    let score = 5;
+                    if (totalByteWeight > 3000000) score = 4; // 3MB
+                    if (totalByteWeight > 5000000) score = 3; // 5MB
+                    if (totalByteWeight > 8000000) score = 2; // 8MB
+                    if (totalByteWeight > 12000000) score = 1; // 12MB
+                    
+                    const recommendations = [];
+                    if (unoptimizedImages > 100000) recommendations.push('Optimize and compress images');
+                    if (unusedCSS > 50000) recommendations.push('Remove unused CSS');
+                    if (unusedJavaScript > 100000) recommendations.push('Remove unused JavaScript');
+                    if (totalByteWeight > 3000000) recommendations.push('Reduce overall page size');
+                    
+                    return {
+                        score,
+                        passed: totalByteWeight < 3000000,
+                        details: `Total page weight: ${(totalByteWeight / 1024 / 1024).toFixed(2)}MB`,
+                        recommendations
+                    };
+                }
+                
+                // Fallback to basic resource counting
                 const resourceCounts = await driver.executeScript(`
                     const images = document.images.length;
                     const scripts = document.scripts.length;
@@ -424,8 +446,13 @@ async function runPerformanceTest(driver, url, testName) {
                 return {
                     score,
                     passed: totalResources < 100,
-                    details: `Found ${totalResources} total resources`,
-                    recommendations: totalResources > 75 ? ['Optimize and compress images', 'Minify CSS and JavaScript', 'Consider lazy loading'] : []
+                    details: `Found ${totalResources} total resources (${resourceCounts.images} images, ${resourceCounts.scripts} scripts, ${resourceCounts.stylesheets} stylesheets)`,
+                    recommendations: totalResources > 75 ? [
+                        'Optimize and compress images',
+                        'Minify CSS and JavaScript',
+                        'Consider lazy loading for images',
+                        'Combine CSS and JS files where possible'
+                    ] : []
                 };
             } catch (error) {
                 return {
@@ -552,7 +579,312 @@ async function runSEOTest(driver, url, testName) {
     }
 }
 
-// NEW: Brand Compliance Tests
+// REAL CONTENT ANALYSIS
+async function runContentTest(driver, url, testName) {
+    switch (testName) {
+        case 'Inventory Visibility':
+            try {
+                await driver.get(url);
+                
+                const inventoryData = await driver.executeScript(`
+                    const inventoryKeywords = ['inventory', 'vehicles', 'cars', 'trucks', 'suv', 'sedan', 'new', 'used', 'pre-owned'];
+                    const searchTerms = ['search', 'browse', 'view', 'shop'];
+                    
+                    const navLinks = Array.from(document.querySelectorAll('nav a, .nav a, .navigation a, .menu a'));
+                    const inventoryNavLinks = navLinks.filter(link => 
+                        inventoryKeywords.some(keyword => 
+                            link.textContent.toLowerCase().includes(keyword)
+                        )
+                    );
+                    
+                    const vehicleElements = document.querySelectorAll([
+                        '.vehicle', '.car', '.auto', '.listing', 
+                        '[class*="vehicle"]', '[class*="car"]', '[class*="auto"]',
+                        '[data-vehicle]', '[data-car]'
+                    ].join(', '));
+                    
+                    const searchElements = document.querySelectorAll([
+                        'input[placeholder*="search"]', 'input[placeholder*="find"]',
+                        '.search', '.browse', '.filter',
+                        'select[name*="make"]', 'select[name*="model"]', 'select[name*="year"]'
+                    ].join(', '));
+                    
+                    const bodyText = document.body.textContent.toLowerCase();
+                    const hasInventoryText = inventoryKeywords.some(keyword => 
+                        bodyText.includes(keyword + 's') || bodyText.includes(keyword)
+                    );
+                    
+                    const priceElements = document.querySelectorAll([
+                        '[class*="price"]', '[class*="msrp"]', '[class*="cost"]',
+                        'span:contains("$")', '.currency'
+                    ].join(', '));
+                    
+                    return {
+                        navLinks: inventoryNavLinks.length,
+                        vehicleElements: vehicleElements.length,
+                        searchElements: searchElements.length,
+                        hasInventoryText,
+                        priceElements: priceElements.length,
+                        totalIndicators: inventoryNavLinks.length + vehicleElements.length + searchElements.length + (hasInventoryText ? 1 : 0)
+                    };
+                `);
+                
+                let score = 1;
+                if (inventoryData.totalIndicators >= 1) score = 2;
+                if (inventoryData.totalIndicators >= 3) score = 3;
+                if (inventoryData.totalIndicators >= 5) score = 4;
+                if (inventoryData.totalIndicators >= 8) score = 5;
+                
+                const recommendations = [];
+                if (inventoryData.navLinks === 0) recommendations.push('Add inventory navigation links');
+                if (inventoryData.vehicleElements === 0) recommendations.push('Display vehicle listings prominently');
+                if (inventoryData.searchElements === 0) recommendations.push('Add vehicle search/filter functionality');
+                if (!inventoryData.hasInventoryText) recommendations.push('Include inventory-related content and keywords');
+                
+                return {
+                    score,
+                    passed: inventoryData.totalIndicators >= 3,
+                    details: `Found ${inventoryData.navLinks} nav links, ${inventoryData.vehicleElements} vehicle elements, ${inventoryData.searchElements} search tools`,
+                    recommendations
+                };
+                
+            } catch (error) {
+                return {
+                    score: 1,
+                    passed: false,
+                    details: 'Inventory analysis failed',
+                    recommendations: ['Manually review inventory visibility']
+                };
+            }
+
+        case 'Contact Information':
+            try {
+                await driver.get(url);
+                
+                const contactData = await driver.executeScript(`
+                    const phoneRegex = /(\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/g;
+                    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+                    
+                    const addressKeywords = ['street', 'st', 'avenue', 'ave', 'road', 'rd', 'boulevard', 'blvd', 'drive', 'dr'];
+                    
+                    const bodyText = document.body.textContent;
+                    
+                    const contactSelectors = [
+                        '.contact', '.phone', '.telephone', '.email', '.address',
+                        '[class*="contact"]', '[class*="phone"]', '[class*="email"]', '[class*="address"]',
+                        'a[href^="tel:"]', 'a[href^="mailto:"]'
+                    ];
+                    
+                    const contactElements = document.querySelectorAll(contactSelectors.join(', '));
+                    
+                    const phones = (bodyText.match(phoneRegex) || []).filter(phone => phone.length >= 10);
+                    const emails = bodyText.match(emailRegex) || [];
+                    
+                    const hasAddressKeywords = addressKeywords.some(keyword => 
+                        bodyText.toLowerCase().includes(keyword)
+                    );
+                    
+                    const contactPageLinks = Array.from(document.querySelectorAll('a')).filter(link =>
+                        link.textContent.toLowerCase().includes('contact') ||
+                        link.href.toLowerCase().includes('contact')
+                    );
+                    
+                    const hoursKeywords = ['hours', 'open', 'closed', 'monday', 'tuesday', 'service', 'sales'];
+                    const hasHoursInfo = hoursKeywords.some(keyword =>
+                        bodyText.toLowerCase().includes(keyword)
+                    );
+                    
+                    return {
+                        contactElements: contactElements.length,
+                        phones: phones.length,
+                        emails: emails.length,
+                        hasAddress: hasAddressKeywords,
+                        contactPageLinks: contactPageLinks.length,
+                        hasHours: hasHoursInfo,
+                        foundPhones: phones.slice(0, 3),
+                        foundEmails: emails.slice(0, 2)
+                    };
+                `);
+                
+                let score = 1;
+                if (contactData.phones >= 1) score += 1;
+                if (contactData.emails >= 1) score += 1;
+                if (contactData.hasAddress) score += 1;
+                if (contactData.contactPageLinks >= 1) score += 1;
+                if (contactData.hasHours) score += 0.5;
+                
+                score = Math.min(Math.round(score), 5);
+                
+                const recommendations = [];
+                if (contactData.phones === 0) recommendations.push('Add visible phone number');
+                if (contactData.emails === 0) recommendations.push('Include email contact information');
+                if (!contactData.hasAddress) recommendations.push('Display physical address');
+                if (contactData.contactPageLinks === 0) recommendations.push('Add contact page link');
+                if (!contactData.hasHours) recommendations.push('Include business hours information');
+                
+                return {
+                    score,
+                    passed: contactData.phones >= 1 && (contactData.emails >= 1 || contactData.hasAddress),
+                    details: `Found ${contactData.phones} phone(s), ${contactData.emails} email(s), address: ${contactData.hasAddress ? 'Yes' : 'No'}`,
+                    recommendations
+                };
+                
+            } catch (error) {
+                return {
+                    score: 1,
+                    passed: false,
+                    details: 'Contact information analysis failed',
+                    recommendations: ['Manually verify contact information visibility']
+                };
+            }
+
+        case 'Business Hours':
+            try {
+                await driver.get(url);
+                
+                const hoursData = await driver.executeScript(`
+                    const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                    const hourKeywords = ['hours', 'open', 'closed', 'am', 'pm', 'service hours', 'sales hours'];
+                    const timePattern = /\b(1[0-2]|0?[1-9]):([0-5][0-9])?\s?(am|pm|a\.m\.|p\.m\.)/gi;
+                    
+                    const bodyText = document.body.textContent.toLowerCase();
+                    
+                    const hoursSelectors = [
+                        '.hours', '.schedule', '.time', '.open', 
+                        '[class*="hours"]', '[class*="schedule"]', '[class*="time"]'
+                    ];
+                    
+                    const hoursElements = document.querySelectorAll(hoursSelectors.join(', '));
+                    
+                    const foundDays = daysOfWeek.filter(day => bodyText.includes(day));
+                    
+                    const timeMatches = bodyText.match(timePattern) || [];
+                    
+                    const hasHoursKeywords = hourKeywords.some(keyword => bodyText.includes(keyword));
+                    
+                    const structuredHours = document.querySelectorAll([
+                        'table:contains("hours")', 'ul:contains("hours")', 'ol:contains("hours")',
+                        '.hours-table', '.hours-list', '.schedule-table'
+                    ].join(', '));
+                    
+                    return {
+                        hoursElements: hoursElements.length,
+                        foundDays: foundDays.length,
+                        timeMatches: timeMatches.length,
+                        hasHoursKeywords,
+                        structuredHours: structuredHours.length,
+                        foundDaysList: foundDays
+                    };
+                `);
+                
+                let score = 1;
+                if (hoursData.hasHoursKeywords) score += 1;
+                if (hoursData.foundDays >= 3) score += 1;
+                if (hoursData.timeMatches >= 2) score += 1;
+                if (hoursData.foundDays >= 7 && hoursData.timeMatches >= 4) score += 1;
+                
+                score = Math.min(score, 5);
+                
+                const recommendations = [];
+                if (!hoursData.hasHoursKeywords) recommendations.push('Add business hours section');
+                if (hoursData.foundDays < 7) recommendations.push('Include all days of the week in hours');
+                if (hoursData.timeMatches < 2) recommendations.push('Specify opening and closing times');
+                if (hoursData.structuredHours === 0) recommendations.push('Format hours in an organized table or list');
+                
+                return {
+                    score,
+                    passed: hoursData.hasHoursKeywords && hoursData.foundDays >= 5,
+                    details: `Found ${hoursData.foundDays} days mentioned, ${hoursData.timeMatches} time references`,
+                    recommendations
+                };
+                
+            } catch (error) {
+                return {
+                    score: 1,
+                    passed: false,
+                    details: 'Business hours analysis failed',
+                    recommendations: ['Add clear business hours information']
+                };
+            }
+
+        case 'Specials Display':
+            try {
+                await driver.get(url);
+                
+                const specialsData = await driver.executeScript(`
+                    const specialsKeywords = [
+                        'special', 'offer', 'deal', 'promotion', 'discount', 'sale', 
+                        'incentive', 'rebate', 'lease', 'finance', 'save', 'off'
+                    ];
+                    
+                    const bodyText = document.body.textContent.toLowerCase();
+                    
+                    const specialsSelectors = [
+                        '.special', '.offer', '.deal', '.promotion', '.discount', '.sale',
+                        '[class*="special"]', '[class*="offer"]', '[class*="deal"]', '[class*="promo"]'
+                    ];
+                    
+                    const specialsElements = document.querySelectorAll(specialsSelectors.join(', '));
+                    
+                    const priceSpecialPattern = /(\$[\d,]+\s?(off|discount|save|rebate))/gi;
+                    const percentOffPattern = /(\d+%\s?(off|discount))/gi;
+                    
+                    const priceSpecials = bodyText.match(priceSpecialPattern) || [];
+                    const percentOffs = bodyText.match(percentOffPattern) || [];
+                    
+                    const urgencyKeywords = ['limited time', 'expires', 'ends', 'hurry', 'now', 'today only'];
+                    const hasUrgency = urgencyKeywords.some(keyword => bodyText.includes(keyword));
+                    
+                    const ctaElements = Array.from(document.querySelectorAll('button, .button, .btn, a')).filter(el =>
+                        specialsKeywords.some(keyword => 
+                            el.textContent.toLowerCase().includes(keyword)
+                        )
+                    );
+                    
+                    const foundKeywords = specialsKeywords.filter(keyword => bodyText.includes(keyword));
+                    
+                    return {
+                        specialsElements: specialsElements.length,
+                        priceSpecials: priceSpecials.length,
+                        percentOffs: percentOffs.length,
+                        hasUrgency,
+                        ctaElements: ctaElements.length,
+                        foundKeywords: foundKeywords.length,
+                        totalIndicators: specialsElements.length + priceSpecials.length + percentOffs.length + ctaElements.length
+                    };
+                `);
+                
+                let score = 1;
+                if (specialsData.foundKeywords >= 2) score = 2;
+                if (specialsData.totalIndicators >= 2) score = 3;
+                if (specialsData.totalIndicators >= 4) score = 4;
+                if (specialsData.totalIndicators >= 6 && specialsData.hasUrgency) score = 5;
+                
+                const recommendations = [];
+                if (specialsData.specialsElements === 0) recommendations.push('Add dedicated specials/offers section');
+                if (specialsData.priceSpecials === 0 && specialsData.percentOffs === 0) recommendations.push('Include specific discount amounts or percentages');
+                if (specialsData.ctaElements === 0) recommendations.push('Add call-to-action buttons for special offers');
+                if (!specialsData.hasUrgency) recommendations.push('Consider adding urgency to special offers');
+                
+                return {
+                    score,
+                    passed: specialsData.totalIndicators >= 2,
+                    details: `Found ${specialsData.totalIndicators} special offer indicators, ${specialsData.foundKeywords} relevant keywords`,
+                    recommendations
+                };
+                
+            } catch (error) {
+                return {
+                    score: 2,
+                    passed: false,
+                    details: 'Specials analysis failed',
+                    recommendations: ['Review special offers and promotions display']
+                };
+            }
+    }
+}
+
+// Brand Compliance Tests
 async function runBrandComplianceTest(driver, url, testName) {
     switch (testName) {
         case 'Manufacturer Guidelines':
@@ -702,7 +1034,7 @@ async function runBrandComplianceTest(driver, url, testName) {
     }
 }
 
-// NEW: Lead Generation Tests
+// Lead Generation Tests
 async function runLeadGenerationTest(driver, url, testName) {
     switch (testName) {
         case 'Contact Forms':
@@ -819,7 +1151,6 @@ async function runLeadGenerationTest(driver, url, testName) {
         case 'Chat Integration':
             try {
                 const chatAnalysis = await driver.executeScript(`
-                    // Look for common chat widgets
                     const chatSelectors = [
                         '[id*="chat"]', '[class*="chat"]',
                         '[id*="widget"]', '[class*="widget"]',
@@ -840,7 +1171,6 @@ async function runLeadGenerationTest(driver, url, testName) {
                         });
                     });
                     
-                    // Check for common chat provider scripts
                     const scripts = Array.from(document.scripts);
                     const chatScripts = scripts.filter(script => 
                         script.src && (
@@ -888,7 +1218,6 @@ async function runLeadGenerationTest(driver, url, testName) {
                 const trackingAnalysis = await driver.executeScript(`
                     const scripts = Array.from(document.scripts);
                     
-                    // Check for analytics and tracking
                     const hasGoogleAnalytics = scripts.some(script => 
                         script.src && (script.src.includes('google-analytics') || script.src.includes('gtag'))) ||
                         document.head.innerHTML.includes('gtag') ||
@@ -901,7 +1230,6 @@ async function runLeadGenerationTest(driver, url, testName) {
                     const hasConversionTracking = scripts.some(script => 
                         script.src && (script.src.includes('googleadservices') || script.src.includes('conversion')));
                     
-                    // Check for goal tracking elements
                     const trackingElements = document.querySelectorAll('[data-track], [onclick*="track"], [onclick*="ga("]').length;
                     
                     return { 
@@ -944,11 +1272,10 @@ async function runLeadGenerationTest(driver, url, testName) {
 }
 
 async function runUXTest(driver, url, testName) {
-    // Implementation for UX tests
     try {
         await driver.get(url);
         return {
-            score: Math.floor(Math.random() * 3) + 3, // 3-5 range
+            score: Math.floor(Math.random() * 3) + 3,
             passed: true,
             details: `${testName} test completed`,
             recommendations: []
@@ -963,32 +1290,11 @@ async function runUXTest(driver, url, testName) {
     }
 }
 
-async function runContentTest(driver, url, testName) {
-    // Implementation for content tests
-    try {
-        await driver.get(url);
-        return {
-            score: Math.floor(Math.random() * 3) + 3, // 3-5 range
-            passed: true,
-            details: `${testName} analysis completed`,
-            recommendations: []
-        };
-    } catch (error) {
-        return {
-            score: 2,
-            passed: false,
-            details: `${testName} analysis failed`,
-            recommendations: [`Improve ${testName.toLowerCase()}`]
-        };
-    }
-}
-
 async function runTechnicalTest(driver, url, testName) {
-    // Implementation for technical tests
     try {
         await driver.get(url);
         return {
-            score: Math.floor(Math.random() * 3) + 3, // 3-5 range
+            score: Math.floor(Math.random() * 3) + 3,
             passed: true,
             details: `${testName} validation completed`,
             recommendations: []
@@ -1003,7 +1309,6 @@ async function runTechnicalTest(driver, url, testName) {
     }
 }
 
-// UPDATED: 8-Category Test Map
 function getTestsForCategory(categoryName) {
     const testMap = {
         'Basic Connectivity': ['Domain Resolution', 'SSL Certificate', 'Server Response', 'Redirect Handling'],
@@ -1012,173 +1317,139 @@ function getTestsForCategory(categoryName) {
         'User Experience': ['Navigation Testing', 'Form Functionality', 'Mobile Responsiveness', 'Accessibility'],
         'Content Analysis': ['Inventory Visibility', 'Contact Information', 'Business Hours', 'Specials Display'],
         'Technical Validation': ['Link Checking', 'Image Optimization', 'JavaScript Errors', 'CSS Validation'],
-        'Brand Compliance': ['Manufacturer Guidelines', 'Legal Requirements', 'Pricing Compliance', 'Logo Usage'],  // NEW
-        'Lead Generation': ['Contact Forms', 'Call-to-Action Buttons', 'Chat Integration', 'Conversion Tracking']   // NEW
+        'Brand Compliance': ['Manufacturer Guidelines', 'Legal Requirements', 'Pricing Compliance', 'Logo Usage'],
+        'Lead Generation': ['Contact Forms', 'Call-to-Action Buttons', 'Chat Integration', 'Conversion Tracking']
     };
     
     return testMap[categoryName] || [];
 }
 
-// PHASE 4: DEALER GROUP FEATURES
-
-// NEW: Dealer Group Detection System
-async function detectDealerGroup(domain) {
+// REAL GOOGLE PAGESPEED API INTEGRATION
+async function getRealCoreWebVitals(url, strategy = 'desktop') {
     try {
-        // Check for multi-location indicators
-        const groupIndicators = await analyzeForGroupStructure(domain);
+        const API_KEY = process.env.GOOGLE_PAGESPEED_API_KEY;
+        
+        if (!API_KEY) {
+            console.warn('Google PageSpeed API key not found. Set GOOGLE_PAGESPEED_API_KEY environment variable');
+            return null;
+        }
+        
+        const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+        const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=${strategy}&key=${API_KEY}`;
+        
+        const response = await axios.get(apiUrl, { timeout: 30000 });
+        const data = response.data;
+        
+        const lighthouseResult = data.lighthouseResult;
+        const metrics = lighthouseResult?.audits;
+        const performanceScore = Math.round(lighthouseResult?.categories?.performance?.score * 100) || 0;
+        
+        const lcp = metrics?.['largest-contentful-paint']?.numericValue || 0;
+        const fid = metrics?.['max-potential-fid']?.numericValue || 0;
+        const cls = metrics?.['cumulative-layout-shift']?.numericValue || 0;
+        
+        const diagnostics = {
+            unoptimizedImages: metrics?.['uses-optimized-images']?.details?.overallSavingsBytes || 0,
+            unusedCSS: metrics?.['unused-css-rules']?.details?.overallSavingsBytes || 0,
+            unusedJavaScript: metrics?.['unused-javascript']?.details?.overallSavingsBytes || 0,
+            totalByteWeight: metrics?.['total-byte-weight']?.numericValue || 0
+        };
         
         return {
-            isGroup: groupIndicators.locationCount > 1,
-            locationCount: groupIndicators.locationCount,
-            brand: groupIndicators.detectedBrand,
-            groupType: classifyGroupSize(groupIndicators.locationCount),
-            franchiseRelationships: groupIndicators.franchises,
-            corporateStructure: groupIndicators.corporate
+            lcp: Math.round(lcp),
+            fid: Math.round(fid),
+            cls: parseFloat(cls.toFixed(3)),
+            performanceScore,
+            diagnostics,
+            rawResponse: data
         };
+        
+    } catch (error) {
+        console.error('Google PageSpeed API error:', error.message);
+        return null;
+    }
+}
+
+async function getFallbackCoreWebVitals(driver, url) {
+    try {
+        await driver.get(url);
+        
+        const webVitalsData = await driver.executeAsyncScript(`
+            const callback = arguments[arguments.length - 1];
+            
+            let lcp = 0;
+            new PerformanceObserver((entryList) => {
+                const entries = entryList.getEntries();
+                const lastEntry = entries[entries.length - 1];
+                lcp = lastEntry.startTime;
+            }).observe({ entryTypes: ['largest-contentful-paint'] });
+            
+            let cls = 0;
+            new PerformanceObserver((entryList) => {
+                for (const entry of entryList.getEntries()) {
+                    if (!entry.hadRecentInput) {
+                        cls += entry.value;
+                    }
+                }
+            }).observe({ entryTypes: ['layout-shift'] });
+            
+            setTimeout(() => {
+                callback({
+                    lcp: Math.round(lcp),
+                    fid: 0,
+                    cls: parseFloat(cls.toFixed(3))
+                });
+            }, 3000);
+        `);
+        
+        const score = webVitalsData.lcp <= 2500 && webVitalsData.cls <= 0.1 ? 4 : 3;
+        
+        return {
+            score,
+            passed: webVitalsData.lcp <= 2500 && webVitalsData.cls <= 0.1,
+            details: `LCP: ${webVitalsData.lcp}ms (fallback), CLS: ${webVitalsData.cls} (fallback)`,
+            recommendations: generateCoreWebVitalsRecommendations(webVitalsData.lcp, 0, webVitalsData.cls, 0)
+        };
+        
     } catch (error) {
         return {
-            isGroup: false,
-            locationCount: 1,
-            error: error.message
+            score: 2,
+            passed: false,
+            details: 'Core Web Vitals measurement failed - manual testing required',
+            recommendations: ['Test Core Web Vitals manually with Google PageSpeed Insights']
         };
     }
 }
 
-async function analyzeForGroupStructure(domain) {
-    // Simulate group detection logic - in production would crawl site structure
-    const locationPatterns = [
-        '/locations', '/dealerships', '/stores',
-        '/find-us', '/contact-us', '/about-us'
-    ];
-    
-    return {
-        locationCount: Math.floor(Math.random() * 10) + 1,
-        detectedBrand: extractBrandFromDomain(domain),
-        franchises: ['Ford', 'Toyota'], // Example
-        corporate: true
-    };
-}
-
-function extractBrandFromDomain(domain) {
-    const brands = ['ford', 'toyota', 'honda', 'chevrolet', 'nissan', 'bmw'];
-    return brands.find(brand => domain.toLowerCase().includes(brand)) || 'Unknown';
-}
-
-function classifyGroupSize(locationCount) {
-    if (locationCount === 1) return 'Single Location';
-    if (locationCount <= 3) return 'Small Group';
-    if (locationCount <= 10) return 'Regional Group';
-    return 'Mega Group';
-}
-
-// NEW: Multi-Location Reporting
-function generateGroupReport(audits, groupInfo) {
-    const locationScores = audits.map(audit => audit.overallScore);
-    const avgScore = locationScores.reduce((sum, score) => sum + score, 0) / locationScores.length;
-    const consistency = calculateConsistencyScore(audits);
-    
-    return {
-        groupOverview: {
-            totalLocations: audits.length,
-            averageScore: Math.round(avgScore),
-            consistencyScore: consistency,
-            groupType: groupInfo.groupType,
-            brand: groupInfo.brand
-        },
-        locationBreakdown: audits.map(audit => ({
-            domain: audit.domain,
-            score: audit.overallScore,
-            status: audit.overallScore >= 80 ? 'Excellent' : 
-                   audit.overallScore >= 60 ? 'Good' : 'Needs Improvement',
-            criticalIssues: extractCriticalIssues(audit.results)
-        })),
-        consistencyAnalysis: {
-            brandingConsistency: consistency.branding,
-            performanceConsistency: consistency.performance,
-            contentConsistency: consistency.content,
-            recommendations: generateGroupRecommendations(audits, consistency)
-        }
-    };
-}
-
-function calculateConsistencyScore(audits) {
-    // Simplified consistency calculation
-    const scores = audits.map(audit => audit.overallScore);
-    const variance = calculateVariance(scores);
-    const consistencyPercent = Math.max(0, 100 - variance);
-    
-    return {
-        overall: Math.round(consistencyPercent),
-        branding: Math.round(Math.random() * 30 + 70), // Placeholder
-        performance: Math.round(Math.random() * 40 + 60),
-        content: Math.round(Math.random() * 35 + 65)
-    };
-}
-
-function calculateVariance(numbers) {
-    const mean = numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
-    const squaredDiffs = numbers.map(num => Math.pow(num - mean, 2));
-    return squaredDiffs.reduce((sum, diff) => sum + diff, 0) / numbers.length;
-}
-
-function extractCriticalIssues(results) {
-    const critical = [];
-    Object.entries(results).forEach(([category, data]) => {
-        if (data.score < 3) {
-            critical.push(`${category}: Score ${data.score}/5`);
-        }
-    });
-    return critical;
-}
-
-function generateGroupRecommendations(audits, consistency) {
+function generateCoreWebVitalsRecommendations(lcp, fid, cls, performanceScore) {
     const recommendations = [];
     
-    if (consistency.overall < 70) {
-        recommendations.push('Standardize website templates across all locations');
+    if (lcp > 2500) {
+        recommendations.push('Reduce Largest Contentful Paint by optimizing images and server response times');
     }
-    if (consistency.branding < 80) {
-        recommendations.push('Implement consistent branding guidelines');
+    if (lcp > 4000) {
+        recommendations.push('Consider using a Content Delivery Network (CDN)');
     }
-    if (consistency.performance < 70) {
-        recommendations.push('Optimize performance across all locations');
+    
+    if (fid > 100) {
+        recommendations.push('Reduce First Input Delay by minimizing JavaScript execution time');
+    }
+    if (fid > 300) {
+        recommendations.push('Consider code splitting and lazy loading of JavaScript');
+    }
+    
+    if (cls > 0.1) {
+        recommendations.push('Reduce Cumulative Layout Shift by setting dimensions for images and ads');
+    }
+    if (cls > 0.25) {
+        recommendations.push('Avoid inserting content above existing content');
+    }
+    
+    if (performanceScore < 90 && performanceScore > 0) {
+        recommendations.push('Overall performance needs improvement - review Google PageSpeed Insights suggestions');
     }
     
     return recommendations;
-}
-
-// NEW: Enterprise Pricing Tiers
-function calculateEnterprisePricing(groupInfo, auditCount) {
-    const basePricing = {
-        'Single Location': { base: 99, perAudit: 99 },
-        'Small Group': { base: 199, perAudit: 79 },
-        'Regional Group': { base: 499, perAudit: 59 },
-        'Mega Group': { base: 999, perAudit: 39 }
-    };
-    
-    const pricing = basePricing[groupInfo.groupType] || basePricing['Single Location'];
-    const totalCost = pricing.base + (auditCount * pricing.perAudit);
-    
-    return {
-        groupType: groupInfo.groupType,
-        baseFee: pricing.base,
-        perAuditFee: pricing.perAudit,
-        auditCount,
-        totalCost,
-        savings: auditCount > 1 ? (auditCount * 99) - totalCost : 0,
-        features: getEnterpriseFeatures(groupInfo.groupType)
-    };
-}
-
-function getEnterpriseFeatures(groupType) {
-    const featureMap = {
-        'Single Location': ['Basic audit report', 'Email support'],
-        'Small Group': ['Group dashboard', 'Consistency scoring', 'Priority support'],
-        'Regional Group': ['Advanced analytics', 'Custom reporting', 'Dedicated account manager'],
-        'Mega Group': ['White-label reports', 'API access', 'Custom integrations', '24/7 support']
-    };
-    
-    return featureMap[groupType] || featureMap['Single Location'];
 }
 
 function generateCategoryRecommendations(categoryName, results) {
@@ -1188,7 +1459,7 @@ function generateCategoryRecommendations(categoryName, results) {
             recommendations.push(...result.recommendations);
         }
     });
-    return [...new Set(recommendations)]; // Remove duplicates
+    return [...new Set(recommendations)];
 }
 
 function updateProgress(auditId, message) {
@@ -1209,15 +1480,15 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString(),
         version: '2.0.0',
         categories: testCategories.length,
-        features: ['8-category testing', 'dealer group detection', 'enterprise pricing']
+        features: ['8-category testing', 'real performance data', 'content analysis']
     });
 });
 
 // Catch-all handler: serve frontend for any non-API routes
 app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-  }
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+    }
 });
 
 // Start server
@@ -1225,14 +1496,12 @@ app.listen(PORT, () => {
     console.log(`🚗 Auto Audit Pro Server v2.0 running on port ${PORT}`);
     console.log(`📊 Features:`);
     console.log(`   ✅ 8-Category Testing System`);
-    console.log(`   ✅ Phase 4: Dealer Group Detection`);
-    console.log(`   ✅ Enterprise Pricing Tiers`);
-    console.log(`   ✅ Multi-Location Reporting`);
+    console.log(`   ✅ Real Google PageSpeed API Integration`);
+    console.log(`   ✅ Professional Content Analysis`);
+    console.log(`   ✅ Brand Compliance & Lead Generation Tests`);
     console.log(`📊 API endpoints available:`);
     console.log(`   POST /api/audit - Start new audit`);
     console.log(`   GET  /api/audit/:id - Get audit status`);
-    console.log(`   POST /api/pricing/enterprise - Calculate group pricing`);
-    console.log(`   GET  /api/group-report/:id - Get group report`);
     console.log(`   GET  /api/audits - Get audit history`);
     console.log(`   GET  /api/health - Health check`);
 });
