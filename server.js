@@ -1459,15 +1459,31 @@ if (!detailedDiagnostics.unoptimizedImages.length && !detailedDiagnostics.unused
     }
 }
 
-// ENHANCED PRIORITY ACTION ITEMS GENERATION
+// ENHANCED PRIORITY ACTION ITEMS GENERATION - WORKS WITH ANY PAGESPEED DATA
 function generateDetailedPriorityActionItems(pageSpeedData, categoryResults) {
     const priorityItems = [];
     
-    if (!pageSpeedData) {
+    if (!pageSpeedData || !pageSpeedData.performanceScore) {
         return generateFallbackPriorityItems(categoryResults);
     }
     
-    // 1. IMAGE OPTIMIZATION (HIGH IMPACT)
+    // 1. OVERALL PERFORMANCE ANALYSIS (ALWAYS AVAILABLE)
+    if (pageSpeedData.performanceScore < 90) {
+        let performanceIssues = [];
+        if (pageSpeedData.lcp > 2500) performanceIssues.push(`LCP: ${pageSpeedData.lcp}ms (slow loading)`);
+        if (pageSpeedData.cls > 0.1) performanceIssues.push(`CLS: ${pageSpeedData.cls} (layout shifts)`);
+        if (pageSpeedData.fid > 100) performanceIssues.push(`FID: ${pageSpeedData.fid}ms (interaction delay)`);
+        if (pageSpeedData.serverResponseTime > 200) performanceIssues.push(`Server response: ${pageSpeedData.serverResponseTime}ms`);
+        
+        priorityItems.push({
+            priority: pageSpeedData.performanceScore < 50 ? 'CRITICAL' : 'HIGH',
+            category: 'Performance - Overall Optimization',
+            issue: 'Website Performance Below Google Standards',
+            details: `Current performance score: ${pageSpeedData.performanceScore}/100 (target: 90+). Key issues: ${performanceIssues.length > 0 ? performanceIssues.join(', ') : 'Multiple optimization opportunities detected'}. Total page weight: ${pageSpeedData.totalByteWeight ? (pageSpeedData.totalByteWeight / 1024 / 1024).toFixed(2) + 'MB' : 'analysis pending'}. Implementation: Focus on Core Web Vitals optimization, resource compression, and server response improvements. ROI: Every 10-point performance increase typically improves conversion rates by 8-12%, estimated $${Math.round(pageSpeedData.performanceScore * 100)}-${Math.round(pageSpeedData.performanceScore * 150)} monthly revenue increase.`
+        });
+    }
+    
+    // 2. IMAGE OPTIMIZATION (IF DATA AVAILABLE)
     if (pageSpeedData.unoptimizedImages && pageSpeedData.unoptimizedImages.length > 0) {
         const totalSavings = pageSpeedData.unoptimizedImages.reduce((sum, img) => sum + (img.wastedBytes || 0), 0);
         const topImages = pageSpeedData.unoptimizedImages.slice(0, 3);
@@ -1475,59 +1491,73 @@ function generateDetailedPriorityActionItems(pageSpeedData, categoryResults) {
         priorityItems.push({
             priority: 'CRITICAL',
             category: 'Performance - Image Optimization',
-            issue: 'Unoptimized Images Slowing Page Load',
+            issue: 'Unoptimized Images Detected',
             details: `Found ${pageSpeedData.unoptimizedImages.length} unoptimized images wasting ${Math.round(totalSavings/1024/1024)}MB. Top issues: ${topImages.map(img => `${img.url.split('/').pop()} (${Math.round(img.wastedBytes/1024)}KB savings)`).join(', ')}. Expected improvement: ${(totalSavings/1024/1024/8*1000).toFixed(1)}ms faster load time. Implementation: Compress using TinyPNG, convert to WebP format, add lazy loading. ROI: Faster loading reduces bounce rate by 15-20%, estimated $8,000-12,000 monthly revenue increase.`
         });
     }
     
-    // 2. CORE WEB VITALS OPTIMIZATION
-    if (pageSpeedData.lcp > 2500 || pageSpeedData.cls > 0.1) {
-        priorityItems.push({
-            priority: 'CRITICAL',
-            category: 'Performance - Core Web Vitals',
-            issue: 'Core Web Vitals Need Immediate Attention',
-            details: `Current metrics: LCP: ${pageSpeedData.lcp}ms (target: <2500ms), CLS: ${pageSpeedData.cls} (target: <0.1). ${pageSpeedData.lcpElement ? `LCP element: ${pageSpeedData.lcpElement}` : 'Large images or fonts blocking render'}. These metrics directly impact Google rankings and user experience. Implementation: Optimize largest contentful paint element, reserve space for dynamic content, preload critical resources. ROI: Core Web Vitals are ranking factors - expect 10-15% organic traffic increase worth $15,000+ monthly.`
-        });
-    }
-    
-    // 3. UNUSED CSS/JAVASCRIPT
+    // 3. UNUSED CSS/JAVASCRIPT (IF DATA AVAILABLE)
     if (pageSpeedData.unusedCSS && pageSpeedData.unusedCSS.length > 0) {
         const cssWaste = pageSpeedData.unusedCSS.reduce((sum, css) => sum + (css.wastedBytes || 0), 0);
         priorityItems.push({
-            priority: 'HIGH',
+            priority: cssWaste > 100000 ? 'HIGH' : 'MEDIUM',
             category: 'Performance - Code Optimization',
-            issue: 'Unused CSS and JavaScript Blocking Render',
+            issue: 'Unused CSS and JavaScript Detected',
             details: `Found ${Math.round(cssWaste/1024)}KB of unused CSS across ${pageSpeedData.unusedCSS.length} files. Files: ${pageSpeedData.unusedCSS.slice(0, 3).map(css => css.url.split('/').pop()).join(', ')}. Remove unused code or implement code splitting for ${(cssWaste/1024/8*1000).toFixed(0)}ms improvement. Implementation: Use PurgeCSS, implement tree-shaking, lazy load non-critical CSS. ROI: Faster initial render improves conversion rates by 5-8%.`
         });
     }
     
-    // 4. SERVER RESPONSE TIME
-    if (pageSpeedData.serverResponseTime > 200) {
-        priorityItems.push({
-            priority: 'HIGH',
-            category: 'Technical - Server Performance', 
-            issue: 'Slow Server Response Time Hurting Performance',
-            details: `Server response time: ${pageSpeedData.serverResponseTime}ms (should be <200ms). This affects all page load metrics. Consider CDN implementation, database optimization, or hosting upgrade. Current delay costs ${((pageSpeedData.serverResponseTime - 200)/1000*100).toFixed(1)}% of potential visitors. Implementation: Implement CDN, optimize database queries, upgrade hosting plan. ROI: Server optimization typically improves conversion rates by 10-15%.`
-        });
-    }
-    
-    // 5. RENDER BLOCKING RESOURCES
+    // 4. RENDER BLOCKING RESOURCES (IF DATA AVAILABLE)
     if (pageSpeedData.renderBlockingResources && pageSpeedData.renderBlockingResources.length > 0) {
         priorityItems.push({
             priority: 'MEDIUM',
             category: 'Performance - Resource Loading',
-            issue: 'Render-Blocking Resources Delaying Page Display',
-            details: `${pageSpeedData.renderBlockingResources.length} render-blocking resources found: ${pageSpeedData.renderBlockingResources.slice(0, 3).map(resource => resource.url.split('/').pop()).join(', ')}. Implement async loading, critical CSS inlining, or resource deferring to improve perceived performance. Implementation: Add async/defer attributes, inline critical CSS, lazy load non-essential scripts. ROI: Faster perceived loading improves user engagement by 12-18%.`
+            issue: 'Render-Blocking Resources Detected',
+            details: `${pageSpeedData.renderBlockingResources.length} render-blocking resources found: ${pageSpeedData.renderBlockingResources.slice(0, 3).map(resource => resource.url.split('/').pop()).join(', ')}. These delay initial page rendering. Implementation: Add async/defer attributes, inline critical CSS, lazy load non-essential scripts. ROI: Faster perceived loading improves user engagement by 12-18%.`
         });
     }
     
-    // Add category-specific issues if PageSpeed data is limited
-    if (priorityItems.length < 3) {
-        const categoryPriorities = generateFallbackPriorityItems(categoryResults);
-        priorityItems.push(...categoryPriorities.slice(0, 5 - priorityItems.length));
+    // 5. SERVER RESPONSE TIME (IF DATA AVAILABLE)
+    if (pageSpeedData.serverResponseTime > 200) {
+        priorityItems.push({
+            priority: pageSpeedData.serverResponseTime > 1000 ? 'HIGH' : 'MEDIUM',
+            category: 'Technical - Server Performance', 
+            issue: 'Slow Server Response Time',
+            details: `Server response time: ${pageSpeedData.serverResponseTime}ms (target: <200ms). This affects all page load metrics and user experience. Current delay costs ${((pageSpeedData.serverResponseTime - 200)/1000*100).toFixed(1)}% of potential visitors due to impatience. Implementation: Implement CDN, optimize database queries, upgrade hosting plan, enable caching. ROI: Server optimization typically improves conversion rates by 10-15%.`
+        });
     }
     
-    return priorityItems.slice(0, 8);
+    // 6. CORE WEB VITALS SPECIFIC ISSUES
+    if (pageSpeedData.lcp > 2500 || pageSpeedData.cls > 0.1 || pageSpeedData.fid > 100) {
+        let vitalsIssues = [];
+        if (pageSpeedData.lcp > 2500) vitalsIssues.push(`LCP: ${pageSpeedData.lcp}ms (target: <2500ms)`);
+        if (pageSpeedData.cls > 0.1) vitalsIssues.push(`CLS: ${pageSpeedData.cls} (target: <0.1)`);
+        if (pageSpeedData.fid > 100) vitalsIssues.push(`FID: ${pageSpeedData.fid}ms (target: <100ms)`);
+        
+        priorityItems.push({
+            priority: 'CRITICAL',
+            category: 'SEO - Core Web Vitals',
+            issue: 'Core Web Vitals Need Immediate Attention',
+            details: `Current metrics: ${vitalsIssues.join(', ')}. ${pageSpeedData.lcpElement ? `LCP element: ${pageSpeedData.lcpElement}. ` : ''}These metrics directly impact Google search rankings and user experience. Google uses Core Web Vitals as ranking factors. Implementation: Optimize largest contentful paint element, reserve space for dynamic content, preload critical resources, minimize layout shifts. ROI: Core Web Vitals improvements can increase organic traffic by 10-15% worth $15,000+ monthly.`
+        });
+    }
+    
+    // 7. ADD CATEGORY-SPECIFIC ISSUES FOR COMPREHENSIVE ANALYSIS
+    const categoryPriorities = generateFallbackPriorityItems(categoryResults);
+    const topCategoryIssues = categoryPriorities.slice(0, 3 - priorityItems.length);
+    priorityItems.push(...topCategoryIssues);
+    
+    // 8. ENSURE WE ALWAYS HAVE ACTIONABLE ITEMS
+    if (priorityItems.length < 2) {
+        priorityItems.push({
+            priority: 'HIGH',
+            category: 'Performance - Optimization Opportunities',
+            issue: 'Additional Performance Improvements Available',
+            details: `Performance score: ${pageSpeedData.performanceScore}/100. While no critical issues were detected, there are always opportunities for improvement. Consider implementing advanced optimizations like service workers, resource hints, and progressive loading. Implementation: Conduct detailed performance audit, implement advanced caching strategies, optimize critical rendering path. ROI: Even small improvements compound to significant business impact over time.`
+        });
+    }
+    
+    return priorityItems.slice(0, 8); // Return top 8 priority items
 }
 
 function generateFallbackPriorityItems(categoryResults) {
