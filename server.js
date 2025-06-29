@@ -829,7 +829,19 @@ async function runContentTest(driver, url, testName) {
                 if (hoursData.timeMatches >= 2) score += 1;
                 if (hoursData.foundDays >= 7 && hoursData.timeMatches >= 4) score += 0.5;
                 
-                score = Math.min(score, 5);
+               score = Math.min(score, 5);
+
+// **ADD THESE DEBUG LINES HERE** ⬇️
+console.log('🕐 BUSINESS HOURS COMPLETE DEBUG:');
+console.log('🕐 hasHoursKeywords:', hoursData.hasHoursKeywords);
+console.log('🕐 foundDays count:', hoursData.foundDays);
+console.log('🕐 timeMatches count:', hoursData.timeMatches);
+console.log('🕐 calculated score:', score);
+console.log('🕐 passed status:', hoursData.hasHoursKeywords && hoursData.foundDays >= 5);
+
+const recommendations = [];
+if (!hoursData.hasHoursKeywords) recommendations.push('Add business hours section');
+// ... rest of your existing code
                 
                 const recommendations = [];
                 if (!hoursData.hasHoursKeywords) recommendations.push('Add business hours section');
