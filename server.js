@@ -838,10 +838,6 @@ console.log('🕐 foundDays count:', hoursData.foundDays);
 console.log('🕐 timeMatches count:', hoursData.timeMatches);
 console.log('🕐 calculated score:', score);
 console.log('🕐 passed status:', hoursData.hasHoursKeywords && hoursData.foundDays >= 5);
-
-const recommendations = [];
-if (!hoursData.hasHoursKeywords) recommendations.push('Add business hours section');
-// ... rest of your existing code
                 
                 const recommendations = [];
                 if (!hoursData.hasHoursKeywords) recommendations.push('Add business hours section');
