@@ -1097,61 +1097,50 @@ async function runLeadGenerationTest(driver, url, testName) {
         case 'Contact Forms':
             try {
                 const formAnalysis = await driver.executeScript(`
-                    const forms = Array.from(document.forms);
-                    
-                    // REPLACE with this EXPANDED list:
-                    const formKeywords = [
-                    'contact', 'quote', 'inquiry', 'schedule', 'appointment',
-                    'info', 'more info', 'get info', 'get more info', 'request', 'price',
-                    'test drive', 'brochure', 'email', 'call', 'chat',
-                    'enter your information', 'you will receive', 'submit', 'send',
-                    'newsletter', 'signup', 'sign up', 'subscribe', 'callback',
-                    'financing', 'trade', 'value', 'estimate', 'apply'
-];
-                    
-                    const contactForms = forms.filter(form => {
-                        const formText = form.innerText.toLowerCase();
-                        return formKeywords.some(keyword => formText.includes(keyword));
-                    });
-                    
-                    // ALSO CHECK FOR FORMS WITH COMMON INPUT TYPES
-                    const allForms = forms.filter(form => {
-                        const inputs = form.querySelectorAll('input, textarea, select');
-                        const hasNameField = Array.from(inputs).some(input => 
-                            input.name.toLowerCase().includes('name') || 
-                            input.placeholder.toLowerCase().includes('name'));
-                        const hasContactField = Array.from(inputs).some(input => 
-                            input.type === 'email' || input.type === 'tel' ||
-                            input.name.toLowerCase().includes('email') ||
-                            input.name.toLowerCase().includes('phone'));
-                        
-                        return hasNameField && hasContactField && inputs.length >= 2;
-                    });
-                    
-                    // COMBINE AND DEDUPLICATE
-                    const uniqueForms = [...new Set([...contactForms, ...allForms])];
-                    
-                    const formFields = uniqueForms.map(form => {
-                        const inputs = form.querySelectorAll('input, textarea, select');
-                        return {
-                            fieldCount: inputs.length,
-                            hasEmail: Array.from(inputs).some(input => 
-                                input.type === 'email' || input.name.toLowerCase().includes('email')),
-                            hasPhone: Array.from(inputs).some(input => 
-                                input.type === 'tel' || input.name.toLowerCase().includes('phone')),
-                            hasName: Array.from(inputs).some(input => 
-                                input.name.toLowerCase().includes('name') || input.placeholder.toLowerCase().includes('name'))
-                        };
-                    });
-                    
-                    return { 
-                        formCount: uniqueForms.length, 
-                        formFields: formFields,
-                        hasValidation: uniqueForms.some(form => form.noValidate === false),
-                        // DEBUG INFO
-                        foundFormTexts: contactForms.slice(0, 3).map(form => form.innerText.substring(0, 100))
-                    };
-                `);
+    const forms = Array.from(document.forms);
+    
+    // SIMPLIFIED APPROACH - LOOK FOR ANY FORM WITH INPUTS
+    const validForms = forms.filter(form => {
+        const inputs = form.querySelectorAll('input, textarea, select');
+        return inputs.length >= 2; // Any form with 2+ inputs
+    });
+    
+    // ALSO SEARCH PAGE TEXT FOR FORM INDICATORS
+    const bodyText = document.body.textContent.toLowerCase();
+    const formIndicators = [
+        'enter your information', 'enter information', 'your information',
+        'you will receive', 'will receive', 'receive more',
+        'contact form', 'request form', 'quote form',
+        'get more info', 'more info', 'get info',
+        'submit', 'send message', 'send', 'apply now'
+    ];
+    
+    const hasFormText = formIndicators.some(indicator => bodyText.includes(indicator));
+    
+    // COUNT FORMS OR FORM INDICATORS
+    const totalFormCount = Math.max(validForms.length, hasFormText ? 1 : 0);
+    
+    const formFields = validForms.map(form => {
+        const inputs = form.querySelectorAll('input, textarea, select');
+        return {
+            fieldCount: inputs.length,
+            hasEmail: Array.from(inputs).some(input => 
+                input.type === 'email' || input.name.toLowerCase().includes('email')),
+            hasPhone: Array.from(inputs).some(input => 
+                input.type === 'tel' || input.name.toLowerCase().includes('phone')),
+            hasName: Array.from(inputs).some(input => 
+                input.name.toLowerCase().includes('name') || input.placeholder.toLowerCase().includes('name'))
+        };
+    });
+    
+    return { 
+        formCount: totalFormCount, 
+        formFields: formFields,
+        hasValidation: validForms.some(form => form.noValidate === false),
+        foundFormTexts: validForms.slice(0, 3).map(form => form.innerText.substring(0, 100)),
+        foundIndicators: formIndicators.filter(indicator => bodyText.includes(indicator))
+    };
+`);
                 
                 // DEBUG OUTPUT
                 console.log('📝 FORM DETECTION DEBUG:', formAnalysis.foundFormTexts);
