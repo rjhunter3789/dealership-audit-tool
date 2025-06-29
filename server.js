@@ -774,50 +774,51 @@ const contactData = await driver.executeScript(`
             try {
                 await driver.get(url);
                 
-                const hoursData = await driver.executeScript(`
-                    // FIX: LOOK FOR BOTH CASES
-                    const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                    const hourKeywords = ['hours', 'open', 'closed', 'am', 'pm', 'service hours', 'sales hours', 'showroom hours'];
-                    
-                    // IMPROVED TIME PATTERN - MORE FLEXIBLE
-                    const timePattern = /\b(1[0-2]|0?[1-9]):?([0-5][0-9])?\s*(AM|PM|am|pm)\b/gi;
-                    
-                    const bodyText = document.body.textContent.toLowerCase(); // FIX: CONVERT TO LOWERCASE
-                    const originalText = document.body.textContent; // KEEP ORIGINAL FOR TIME MATCHING
-                    
-                    const hoursSelectors = [
-                        '.hours', '.schedule', '.time', '.open', 
-                        '[class*="hours"]', '[class*="schedule"]', '[class*="time"]',
-                        // ADD MORE SPECIFIC SELECTORS
-                        '.showroom', '.hours-info', '.business-hours'
-                    ];
-                    
-                    const hoursElements = document.querySelectorAll(hoursSelectors.join(', '));
-                    
-                    const foundDays = daysOfWeek.filter(day => bodyText.includes(day));
-                    
-                    // SEARCH IN ORIGINAL TEXT FOR TIMES
-                    const timeMatches = originalText.match(timePattern) || [];
-                    
-                    const hasHoursKeywords = hourKeywords.some(keyword => bodyText.includes(keyword));
-                    
-                    // LOOK FOR STRUCTURED HOURS
-                    const structuredHours = document.querySelectorAll([
-                        'table', 'ul', 'ol', '.hours-table', '.hours-list', '.schedule-table'
-                    ].join(', ')).length;
-                    
-                    return {
-                        hoursElements: hoursElements.length,
-                        foundDays: foundDays.length,
-                        timeMatches: timeMatches.length,
-                        hasHoursKeywords,
-                        structuredHours: structuredHours,
-                        foundDaysList: foundDays,
-                        foundTimes: timeMatches.slice(0, 4),
-                        // DEBUG INFO
-                        foundKeywords: hourKeywords.filter(k => bodyText.includes(k))
-                    };
-                `);
+                // ===============================================
+// FIX 2: BUSINESS HOURS - ULTRA SIMPLE TIME PATTERN
+// ===============================================
+// Replace the Business Hours executeScript with:
+
+const hoursData = await driver.executeScript(`
+    const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const hourKeywords = ['hours', 'open', 'closed', 'am', 'pm', 'service hours', 'sales hours', 'showroom hours'];
+    
+    // ULTRA SIMPLE TIME PATTERN - NO COMPLEX ESCAPING
+    const timePattern = /\\d{1,2}:\\d{2}\\s*(AM|PM|am|pm)/g;
+    
+    const bodyText = document.body.textContent.toLowerCase();
+    const originalText = document.body.textContent;
+    
+    const hoursSelectors = [
+        '.hours', '.schedule', '.time', '.open', 
+        '[class*="hours"]', '[class*="schedule"]', '[class*="time"]',
+        '.showroom', '.hours-info', '.business-hours'
+    ];
+    
+    const hoursElements = document.querySelectorAll(hoursSelectors.join(', '));
+    
+    const foundDays = daysOfWeek.filter(day => bodyText.includes(day));
+    
+    // SEARCH FOR SIMPLE TIME PATTERNS
+    const timeMatches = originalText.match(timePattern) || [];
+    
+    const hasHoursKeywords = hourKeywords.some(keyword => bodyText.includes(keyword));
+    
+    const structuredHours = document.querySelectorAll([
+        'table', 'ul', 'ol', '.hours-table', '.hours-list', '.schedule-table'
+    ].join(', ')).length;
+    
+    return {
+        hoursElements: hoursElements.length,
+        foundDays: foundDays.length,
+        timeMatches: timeMatches.length,
+        hasHoursKeywords,
+        structuredHours: structuredHours,
+        foundDaysList: foundDays,
+        foundTimes: timeMatches.slice(0, 4),
+        foundKeywords: hourKeywords.filter(k => bodyText.includes(k))
+    };
+`);
                 
                 // DEBUG OUTPUT
                 console.log('🕐 BUSINESS HOURS DEBUG:', hoursData.foundKeywords);
