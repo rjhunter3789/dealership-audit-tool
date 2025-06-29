@@ -144,6 +144,10 @@ async function runAudit(auditId, domain) {
         audit.priorityActionItems = generateDetailedPriorityActionItems(global.lastPageSpeedData, audit.results);
         console.log('📊 Generated Priority Items count:', audit.priorityActionItems.length);
         console.log('📊 First Priority Item:', audit.priorityActionItems[0] ? audit.priorityActionItems[0].issue : 'None');
+        // ADD THESE 3 NEW LINES:
+        console.log('🔍 FULL First Priority Item Object:', audit.priorityActionItems[0]);
+        console.log('🔍 First Priority Item Properties:', Object.keys(audit.priorityActionItems[0] || {}));
+        console.log('🔍 ALL Priority Items Full Structure:', audit.priorityActionItems);
 
         // Calculate overall score
         audit.overallScore = Math.round(totalScore * 20); // Convert to 100-point scale
