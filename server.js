@@ -672,7 +672,7 @@ async function runContentTest(driver, url, testName) {
                 
                 const contactData = await driver.executeScript(`
                     // IMPROVED PHONE REGEX - MORE FLEXIBLE
-                    const phoneRegex = /(\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/g;
+                    const phoneRegex = /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
                     const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
                     
                     // FIX: CONVERT TO LOWERCASE FOR MATCHING
@@ -779,7 +779,7 @@ async function runContentTest(driver, url, testName) {
                     const hourKeywords = ['hours', 'open', 'closed', 'am', 'pm', 'service hours', 'sales hours', 'showroom hours'];
                     
                     // IMPROVED TIME PATTERN - MORE FLEXIBLE
-                    const timePattern = /\b(1[0-2]|0?[1-9]):?([0-5][0-9])?\s*(AM|PM|am|pm|a\.?m\.?|p\.?m\.?)\b/gi;
+                    const timePattern = /\b(1[0-2]|0?[1-9]):?([0-5][0-9])?\s*(AM|PM|am|pm)\b/gi;
                     
                     const bodyText = document.body.textContent.toLowerCase(); // FIX: CONVERT TO LOWERCASE
                     const originalText = document.body.textContent; // KEEP ORIGINAL FOR TIME MATCHING
@@ -1097,12 +1097,15 @@ async function runLeadGenerationTest(driver, url, testName) {
                 const formAnalysis = await driver.executeScript(`
                     const forms = Array.from(document.forms);
                     
-                    // EXPANDED KEYWORDS FOR FORM DETECTION
+                    // REPLACE with this EXPANDED list:
                     const formKeywords = [
-                        'contact', 'quote', 'inquiry', 'schedule', 'appointment',
-                        'info', 'more info', 'get info', 'request', 'price',
-                        'test drive', 'brochure', 'email', 'call', 'chat'
-                    ];
+                    'contact', 'quote', 'inquiry', 'schedule', 'appointment',
+                    'info', 'more info', 'get info', 'get more info', 'request', 'price',
+                    'test drive', 'brochure', 'email', 'call', 'chat',
+                    'enter your information', 'you will receive', 'submit', 'send',
+                    'newsletter', 'signup', 'sign up', 'subscribe', 'callback',
+                    'financing', 'trade', 'value', 'estimate', 'apply'
+];
                     
                     const contactForms = forms.filter(form => {
                         const formText = form.innerText.toLowerCase();
