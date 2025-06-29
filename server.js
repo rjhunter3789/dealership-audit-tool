@@ -670,66 +670,67 @@ async function runContentTest(driver, url, testName) {
             try {
                 await driver.get(url);
                 
-                const contactData = await driver.executeScript(`
-                    // IMPROVED PHONE REGEX - MORE FLEXIBLE
-                    const phoneRegex = /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-                    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-                    
-                    // FIX: CONVERT TO LOWERCASE FOR MATCHING
-                    const bodyText = document.body.textContent.toLowerCase();
-                    
-                    // IMPROVED SELECTORS
-                    const contactSelectors = [
-                        '.contact', '.phone', '.telephone', '.email', '.address',
-                        '[class*="contact"]', '[class*="phone"]', '[class*="email"]', '[class*="address"]',
-                        'a[href^="tel:"]', 'a[href^="mailto:"]',
-                        // ADD COMMON HEADER/FOOTER SELECTORS
-                        'header', 'footer', '.header', '.footer', 'nav', '.nav'
-                    ];
-                    
-                    const contactElements = document.querySelectorAll(contactSelectors.join(', '));
-                    
-                    // SEARCH IN ORIGINAL TEXT FOR PHONE NUMBERS (NOT LOWERCASE)
-                    const originalText = document.body.textContent;
-                    const phones = (originalText.match(phoneRegex) || []).filter(phone => phone.replace(/\D/g, '').length >= 10);
-                    const emails = originalText.match(emailRegex) || [];
-                    
-                    // IMPROVED ADDRESS DETECTION
-                    const addressKeywords = ['street', 'st', 'avenue', 'ave', 'road', 'rd', 'boulevard', 'blvd', 'drive', 'dr', 'spokane', 'wa'];
-                    const hasAddressKeywords = addressKeywords.some(keyword => 
-                        bodyText.includes(keyword)
-                    );
-                    
-                    // LOOK FOR CONTACT PAGE LINKS
-                    const contactPageLinks = Array.from(document.querySelectorAll('a')).filter(link =>
-                        link.textContent.toLowerCase().includes('contact') ||
-                        link.href.toLowerCase().includes('contact') ||
-                        link.textContent.toLowerCase().includes('directions') ||
-                        link.textContent.toLowerCase().includes('location')
-                    );
-                    
-                    // IMPROVED HOURS DETECTION
-                    const hoursKeywords = ['hours', 'open', 'closed', 'monday', 'tuesday', 'service', 'sales', 'showroom'];
-                    const hasHoursInfo = hoursKeywords.some(keyword =>
-                        bodyText.includes(keyword)
-                    );
-                    
-                    return {
-                        contactElements: contactElements.length,
-                        phones: phones.length,
-                        emails: emails.length,
-                        hasAddress: hasAddressKeywords,
-                        contactPageLinks: contactPageLinks.length,
-                        hasHours: hasHoursInfo,
-                        foundPhones: phones.slice(0, 3),
-                        foundEmails: emails.slice(0, 2),
-                        // DEBUG INFO
-                        debugInfo: {
-                            foundAddressKeywords: addressKeywords.filter(k => bodyText.includes(k)),
-                            foundHoursKeywords: hoursKeywords.filter(k => bodyText.includes(k))
-                        }
-                    };
-                `);
+                // 🎯 DEFINITIVE FIX - REGEX ESCAPING ISSUES
+// ==========================================
+// The issue is JavaScript string escaping in executeScript
+
+// ===============================================
+// FIX 1: CONTACT INFO - PROPERLY ESCAPED REGEX
+// ===============================================
+// Replace the entire Contact Information executeScript with:
+
+const contactData = await driver.executeScript(`
+    // SAFE PHONE REGEX WITH PROPER ESCAPING
+    const phoneRegex = /\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}/g;
+    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/g;
+    
+    const bodyText = document.body.textContent.toLowerCase();
+    
+    const contactSelectors = [
+        '.contact', '.phone', '.telephone', '.email', '.address',
+        '[class*="contact"]', '[class*="phone"]', '[class*="email"]', '[class*="address"]',
+        'a[href^="tel:"]', 'a[href^="mailto:"]',
+        'header', 'footer', '.header', '.footer', 'nav', '.nav'
+    ];
+    
+    const contactElements = document.querySelectorAll(contactSelectors.join(', '));
+    
+    const originalText = document.body.textContent;
+    const phones = (originalText.match(phoneRegex) || []).filter(phone => phone.replace(/\\D/g, '').length >= 10);
+    const emails = originalText.match(emailRegex) || [];
+    
+    const addressKeywords = ['street', 'st', 'avenue', 'ave', 'road', 'rd', 'boulevard', 'blvd', 'drive', 'dr', 'spokane', 'wa'];
+    const hasAddressKeywords = addressKeywords.some(keyword => 
+        bodyText.includes(keyword)
+    );
+    
+    const contactPageLinks = Array.from(document.querySelectorAll('a')).filter(link =>
+        link.textContent.toLowerCase().includes('contact') ||
+        link.href.toLowerCase().includes('contact') ||
+        link.textContent.toLowerCase().includes('directions') ||
+        link.textContent.toLowerCase().includes('location')
+    );
+    
+    const hoursKeywords = ['hours', 'open', 'closed', 'monday', 'tuesday', 'service', 'sales', 'showroom'];
+    const hasHoursInfo = hoursKeywords.some(keyword =>
+        bodyText.includes(keyword)
+    );
+    
+    return {
+        contactElements: contactElements.length,
+        phones: phones.length,
+        emails: emails.length,
+        hasAddress: hasAddressKeywords,
+        contactPageLinks: contactPageLinks.length,
+        hasHours: hasHoursInfo,
+        foundPhones: phones.slice(0, 3),
+        foundEmails: emails.slice(0, 2),
+        debugInfo: {
+            foundAddressKeywords: addressKeywords.filter(k => bodyText.includes(k)),
+            foundHoursKeywords: hoursKeywords.filter(k => bodyText.includes(k))
+        }
+    };
+`);
                 
                 // DEBUG OUTPUT
                 console.log('📞 CONTACT INFO DEBUG:', contactData.debugInfo);
