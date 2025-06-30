@@ -1097,34 +1097,40 @@
 
         function generatePriorityActionsHTML(actions) {
             console.log('🚨 FUNCTION CALLED!', actions);
-    
+
             if (actions.length === 0) {
                 return '<div class="no-issues">✅ No critical issues found! This category is performing excellently.</div>';
-    }
-
-    // ✅ NEW: Use detailed Priority Items if available
-    const detailedPriorityItems = window.auditData?.priorityActionItems || [];
+            }
     
-    if (detailedPriorityItems.length > 0) {
-        // Use detailed Priority Items with rich content
-        return detailedPriorityItems.map(item => {
-            // Map backend priority to CSS class
-            const priorityClass = item.priority.toLowerCase() === 'critical' ? 'high' : 
+            // ✅ NEW: Use detailed Priority Items if available
+            const detailedPriorityItems = window.auditData?.priorityActionItems || [];
+    
+            if (detailedPriorityItems.length > 0) {
+                // Use detailed Priority Items with rich content
+                return detailedPriorityItems.map(item => {
+                    // Map backend priority to CSS class
+                    const priorityClass = item.priority.toLowerCase() === 'critical' ? 'high' : 
                                  item.priority.toLowerCase() === 'high' ? 'high' :
                                  item.priority.toLowerCase() === 'medium' ? 'medium' : 'low';
             
-            const priorityDisplay = item.priority.toLowerCase() === 'critical' ? 'HIGH' : item.priority.toUpperCase();
+                    const priorityDisplay = item.priority.toLowerCase() === 'critical' ? 'HIGH' : item.priority.toUpperCase();
             
-            return `
-                <div class="action-item action-${priorityClass}">
-                    <div class="action-priority priority-${priorityClass}">${priorityDisplay} PRIORITY</div>
-                    <div class="action-source">${item.category}</div>
-                    <div class="action-issue"><strong>Issue:</strong> ${item.issue}</div>
-                    <div class="action-details"><strong>Details:</strong> ${item.description}</div>
-                </div>
-            `;
+                    return '<div class="action-item action-' + priorityClass + '">' +
+                           '<div class="action-priority priority-' + priorityClass + '">' + priorityDisplay + ' PRIORITY</div>' +
+                           '<div class="action-source">' + item.category + '</div>' +
+                           '<div class="action-issue"><strong>Issue:</strong> ' + item.issue + '</div>' +
+                           '<div class="action-details"><strong>Details:</strong> ' + item.description + '</div>' +
+                           '</div>';
         }).join('');
     }
+
+    // Fallback if no detailed items
+    return '<div class="no-issues">No priority items available.</div>';
+}
+
+    // Fallback if no detailed items
+    return '<div class="no-issues">No priority items available.</div>';
+}
 
     // Fallback to basic actions if detailed items not available
     const sortedActions = actions.sort((a, b) => {
