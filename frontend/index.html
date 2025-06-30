@@ -813,6 +813,9 @@
         function showProfessionalResults(audit) {
             // Store audit data globally
             window.auditData = audit;
+
+            // Add this line somewhere in showProfessionalResults function, right after window.auditData = audit;
+            console.log('🚨 AUDIT DATA CHECK:', audit.priorityActionItems);
             
             document.getElementById('progress-section').style.display = 'none';
             document.getElementById('results-section').style.display = 'block';
