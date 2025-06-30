@@ -1096,11 +1096,42 @@
         }
 
         function generatePriorityActionsHTML(actions) {
-            console.log('🚨 FUNCTION CALLED!', actions);  // First - test if function runs
+            console.log('🚨 FUNCTION CALLED!', actions);
     
             if (actions.length === 0) {
                 return '<div class="no-issues">✅ No critical issues found! This category is performing excellently.</div>';
-            }
+    }
+
+    // ✅ NEW: Use detailed Priority Items if available
+    const detailedPriorityItems = window.auditData?.priorityActionItems || [];
+    
+    if (detailedPriorityItems.length > 0) {
+        // Use detailed Priority Items with rich content
+        return detailedPriorityItems.map(item => `
+            <div class="action-item action-${item.priority.toLowerCase()}">
+                <div class="action-priority priority-${item.priority.toLowerCase()}">${item.priority} PRIORITY</div>
+                <div class="action-source">${item.category}</div>
+                <div class="action-issue"><strong>Issue:</strong> ${item.issue}</div>
+                <div class="action-details"><strong>Details:</strong> ${item.description}</div>
+            </div>
+        `).join('');
+    }
+
+    // Fallback to basic actions if detailed items not available
+    const sortedActions = actions.sort((a, b) => {
+        const priorityOrder = { high: 3, medium: 1, low: 2 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+
+    return sortedActions.map(action => `
+        <div class="action-item action-${action.priority}">
+            <div class="action-priority priority-${action.priority}">${action.priority.toUpperCase()} PRIORITY</div>
+            <div class="action-source">${action.category} - ${action.test}</div>
+            <div class="action-issue"><strong>Issue:</strong> ${action.test || 'No issue specified'}</div>
+            <div class="action-details"><strong>Details:</strong> ${action.details || 'No details available'}</div>
+        </div>
+    `).join('');
+}
 
     const sortedActions = actions.sort((a, b) => {
         const priorityOrder = { high: 3, medium: 1, low: 2 };
