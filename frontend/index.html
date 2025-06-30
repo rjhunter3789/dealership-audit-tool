@@ -1122,7 +1122,7 @@
                     </div>
                     <div class="action-source">${action.category} - ${action.test}</div>
                     <div class="action-issue"><strong>Issue:</strong> ${action.test || 'No issue specified'}</div>
-                    <div class="action-details"><strong>Details:</strong> ${action.details || 'No details available'}</div>
+                    <div class="action-details"><strong>Details:</strong> ${action.text || action.details || 'No details available'}</div>
                 </div>
             `).join('');
         }
