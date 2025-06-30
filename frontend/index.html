@@ -1113,7 +1113,7 @@
     console.log('🔍 FRONTEND DEBUG: action keys:', sortedActions[0] ? Object.keys(sortedActions[0]) : 'no actions');
     console.log('🔍 FRONTEND DEBUG: Full action object:', sortedActions[0]);
     console.log('🔍 FRONTEND DEBUG: Action object properties:', Object.keys(sortedActions[0] || {}));
-    console.log('🔍 FRONTEND DEBUG: action.issue value:', sortedActions[0] ? sortedActions[0].issue : 'no issue');
+    console.log('🔍 FRONTEND DEBUG: action.issue value:', sortedActions[0] ? sortedActions[0].test : 'no issue');
 
     return sortedActions.map(action => `
                 <div class="action-item action-${action.priority}">
