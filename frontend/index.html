@@ -1119,8 +1119,8 @@
                         ${action.priority.toUpperCase()} PRIORITY
                     </div>
                     <div class="action-source">${action.category} - ${action.test}</div>
-                    <div class="action-issue"><strong>Issue:</strong> ${action.issue}</div>
-                    <div class="action-details"><strong>Details:</strong> ${action.description}</div>
+                    <div class="action-issue"><strong>Issue:</strong> " + (action.issue || 'No issue specified') + "</div>
+                    <div class="action-details"><strong>Details:</strong> " + (action.description || 'No details available') + "</div>
                 </div>
             `).join('');
         }
