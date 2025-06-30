@@ -1148,22 +1148,45 @@
         }
 
         function generatePriorityActionsHTML(actions) {
-            if (actions.length === 0) {
-                return '<div class="no-issues">✅ No critical issues found! This category is performing excellently.</div>';
-            }
+            // Use detailed Priority Items if available, otherwise fall back to basic actions
+            const detailedPriorityItems = window.auditData?.priorityActionItems || [];
+    
+            if (detailedPriorityItems.length > 0) {
+                // Use the detailed Priority Items with rich content
+                var html = '';
+                for (var i = 0; i < detailedPriorityItems.length; i++) {
+                    var item = detailedPriorityItems[i];
+                    var priorityClass = item.priority.toLowerCase() === 'critical' ? 'high' : 
+                                        item.priority.toLowerCase() === 'high' ? 'high' :
+                                        item.priority.toLowerCase() === 'medium' ? 'medium' : 'low';
             
-            var html = '';
-            for (var i = 0; i < actions.length; i++) {
-                var action = actions[i];
-                html += '<div class="action-item action-' + action.priority + '">';
-                html += '<div class="action-priority priority-' + action.priority + '">' + action.priority.toUpperCase() + ' PRIORITY</div>';
-                html += '<div class="action-source">' + action.category + ' - ' + action.test + '</div>';
-                html += '<div class="action-issue"><strong>Issue:</strong> ' + action.test + '</div>';
-                html += '<div class="action-details"><strong>Details:</strong> ' + (action.details || 'No details available') + '</div>';
-                html += '</div>';
-            }
-            return html;
-        }
+                    html += '<div class="action-item action-' + priorityClass + '">';
+                    html += '<div class="action-priority priority-' + priorityClass + '">' + item.priority.toUpperCase() + ' PRIORITY</div>';
+                    html += '<div class="action-source">' + item.category + '</div>';
+                    html += '<div class="action-issue"><strong>Issue:</strong> ' + item.issue + '</div>';
+                    html += '<div class="action-details"><strong>Details:</strong> ' + item.description + '</div>';
+                    html += '</div>';
+                }
+                return html;
+    }
+    
+    // Fallback to basic actions if no detailed items
+    if (actions.length === 0) {
+        return '<div class="no-issues">✅ No critical issues found! This category is performing excellently.</div>';
+    }
+    
+    var html = '';
+    for (var i = 0; i < actions.length; i++) {
+        var action = actions[i];
+        html += '<div class="action-item action-' + action.priority + '">';
+        html += '<div class="action-priority priority-' + action.priority + '">' + action.priority.toUpperCase() + ' PRIORITY</div>';
+        html += '<div class="action-source">' + action.category + ' - ' + action.test + '</div>';
+        html += '<div class="action-issue"><strong>Issue:</strong> ' + action.test + '</div>';
+        html += '<div class="action-details"><strong>Details:</strong> ' + (action.details || 'No details available') + '</div>';
+        html += '</div>';
+    }
+    return html;
+}
 
         function getCurrentRecommendations() {
             const recommendationElements = document.querySelectorAll('.recommendation-item');
