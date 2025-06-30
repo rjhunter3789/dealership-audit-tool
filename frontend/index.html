@@ -1107,7 +1107,7 @@
     
     if (detailedPriorityItems.length > 0) {
         // Use detailed Priority Items with rich content
-        return detailedPriorityItems.map(item => `
+        return detailedPriorityItems.map(item =>
             <div class="action-item action-${item.priority.toLowerCase()}">
                 <div class="action-priority priority-${item.priority.toLowerCase()}">${item.priority} PRIORITY</div>
                 <div class="action-source">${item.category}</div>
