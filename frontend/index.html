@@ -1096,22 +1096,25 @@
         }
 
         function generatePriorityActionsHTML(actions) {
+            console.log('🚨 FUNCTION CALLED!', actions);  // First - test if function runs
+    
             if (actions.length === 0) {
                 return '<div class="no-issues">✅ No critical issues found! This category is performing excellently.</div>';
             }
-            
-            const sortedActions = actions.sort((a, b) => {
-                const priorityOrder = { high: 3, medium: 1, low: 2 };
-                return priorityOrder[a.priority] - priorityOrder[b.priority];
-});
 
-// ADD THESE 4 DEBUG LINES HERE (around line 1107):
-console.log('🔍 FRONTEND DEBUG: sortedActions:', sortedActions);
-console.log('🔍 FRONTEND DEBUG: first action:', sortedActions[0]);
-console.log('🔍 FRONTEND DEBUG: action keys:', sortedActions[0] ? Object.keys(sortedActions[0]) : 'no actions');
-console.log('🔍 FRONTEND DEBUG: action.issue value:', sortedActions[0] ? sortedActions[0].issue : 'no issue');
+    const sortedActions = actions.sort((a, b) => {
+        const priorityOrder = { high: 3, medium: 1, low: 2 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
 
-return sortedActions.map(action => `
+    // DEBUG LINES SHOULD GO HERE - AFTER sortedActions is created:
+    console.log('🔍 FRONTEND DEBUG: sortedActions:', sortedActions);
+    console.log('🔍 FRONTEND DEBUG: first action:', sortedActions[0]);
+    console.log('🔍 FRONTEND DEBUG: action keys:', sortedActions[0] ? Object.keys(sortedActions[0]) : 'no actions');
+    console.log('🔍 FRONTEND DEBUG: action.issue value:', sortedActions[0] ? sortedActions[0].issue : 'no issue');
+
+    return sortedActions.map(action => `
+        // rest of function... `
                 <div class="action-item action-${action.priority}">
                     <div class="action-priority priority-${action.priority}">
                         ${action.priority.toUpperCase()} PRIORITY
