@@ -1148,7 +1148,7 @@
         return priorityOrder[a.priority] - priorityOrder[b.priority];
     });
 
-    return sortedActions.map(action => `
+    return sortedActions.map(action =>
         <div class="action-item action-${action.priority}">
             <div class="action-priority priority-${action.priority}">${action.priority.toUpperCase()} PRIORITY</div>
             <div class="action-source">${action.category} - ${action.test}</div>
