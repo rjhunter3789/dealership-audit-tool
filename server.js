@@ -112,48 +112,54 @@ async function runAudit(auditId, domain) {
     let driver;
     
     try {
-        // Ensure domain has protocol
-        const url = domain.startsWith('http') ? domain : `https://${domain}`;
-        
-        // Create WebDriver instance
+        const baseUrl = domain.startsWith('http') ? domain : `https://${domain}`;
         driver = await new Builder()
             .forBrowser('chrome')
             .setChromeOptions(chromeOptions)
             .build();
 
+        // Discover pages to audit
+        const pagesToAudit = await discoverPages(driver, baseUrl);
+        audit.pageResults = {};  // Store per-page results
         let totalScore = 0;
+        let totalWeight = 0;
         let completedTests = 0;
+        const totalTests = pagesToAudit.length * testCategories.length;
 
-        for (const category of testCategories) {
-            updateProgress(auditId, `Running ${category.name}...`);
+        for (const pageUrl of pagesToAudit) {
+            audit.pageResults[pageUrl] = {};
+            let pageScore = 0;
+            let pageWeight = 0;
             
-            const categoryResult = await runCategoryTests(driver, url, category.name);
-            audit.results[category.name] = categoryResult;
+            for (const category of testCategories) {
+                updateProgress(auditId, `Running ${category.name} on ${pageUrl}...`);
+                const categoryResult = await runCategoryTests(driver, pageUrl, category.name);
+                audit.pageResults[pageUrl][category.name] = categoryResult;
+                
+                pageScore += categoryResult.score * category.weight;
+                pageWeight += category.weight;
+                completedTests++;
+                
+                audit.progress = Math.round((completedTests / totalTests) * 100);
+            }
             
-            totalScore += categoryResult.score * category.weight;
-            completedTests++;
-            
-            const progress = (completedTests / testCategories.length) * 100;
-            audit.progress = Math.round(progress);
+            // Store page score (0-100 scale)
+            audit.pageResults[pageUrl].overallScore = Math.round((pageScore / pageWeight) * 100);
+            totalScore += pageScore;
+            totalWeight += pageWeight;
         }
 
-        // Generate detailed Priority Action Items
-        updateProgress(auditId, 'Generating Priority Action Items...');
-        console.log('🔍 Generating Priority Action Items with data:', global.lastPageSpeedData ? 'PageSpeed data available' : 'No PageSpeed data');
-        console.log('🔍 PageSpeed data details:', global.lastPageSpeedData ? `Performance: ${global.lastPageSpeedData.performanceScore}, LCP: ${global.lastPageSpeedData.lcp}` : 'None');
-        audit.priorityActionItems = generateDetailedPriorityActionItems(global.lastPageSpeedData, audit.results);
-        console.log('📊 Generated Priority Items count:', audit.priorityActionItems.length);
-        console.log('📊 First Priority Item:', audit.priorityActionItems[0] ? audit.priorityActionItems[0].issue : 'None');
-        // ADD THESE 3 NEW LINES:
-        console.log('🔍 FULL First Priority Item Object:', audit.priorityActionItems[0]);
-        console.log('🔍 First Priority Item Properties:', Object.keys(audit.priorityActionItems[0] || {}));
-        console.log('🔍 ALL Priority Items Full Structure:', audit.priorityActionItems);
-
-        // Calculate overall score
-        audit.overallScore = Math.round(totalScore * 20); // Convert to 100-point scale
+        // Calculate overall score (0-100 scale)
+        audit.overallScore = Math.round((totalScore / totalWeight) * 100);
         audit.status = 'completed';
         audit.endTime = new Date();
         audit.duration = audit.endTime - audit.startTime;
+        
+        // Generate priority items from homepage results
+        audit.priorityActionItems = generateDetailedPriorityActionItems(
+            global.lastPageSpeedData, 
+            audit.pageResults[baseUrl]  // Use homepage for priority items
+        );
 
         // Add to history
         auditHistory.unshift({
