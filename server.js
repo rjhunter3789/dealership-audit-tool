@@ -1503,7 +1503,12 @@ function getTestsForCategory(categoryName) {
         'User Experience': ['Navigation Testing', 'Form Functionality', 'Mobile Responsiveness', 'Accessibility'],
         'Content Analysis': ['Inventory Visibility', 'Contact Information', 'Business Hours', 'Specials Display'],
         'Technical Validation': ['Link Checking', 'Image Optimization', 'JavaScript Errors', 'CSS Validation'],
-        'Brand Compliance': ['Manufacturer Guidelines', 'Legal Requirements', 'Pricing Compliance', 'Logo Usage'],
+        'Brand Compliance': [
+            'Manufacturer Guidelines', 
+            'Legal Requirements', 
+            'VDP Pricing Compliance', // CHANGED from 'Pricing Compliance'
+            'Logo Usage'
+        ],
         'Lead Generation': ['Contact Forms', 'Call-to-Action Buttons', 'Chat Integration', 'Conversion Tracking']
     };
     
