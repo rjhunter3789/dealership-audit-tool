@@ -1391,6 +1391,79 @@ async function runTechnicalTest(driver, url, testName) {
     }
 }
 
+// ======================== PAGE DISCOVERY ======================== //
+async function discoverPages(driver, baseUrl) {
+    try {
+        await driver.get(baseUrl);
+        const baseDomain = new URL(baseUrl).hostname;
+        
+        // Prioritized page types
+        const pageTypes = {
+            vdp: { 
+                priority: 10,
+                patterns: ['/vehicle/', '/inventory/', '/car/', '/truck/', '/vin/', '/stock/', '/details/', '/used/']
+            },
+            contact: { priority: 9, patterns: ['/contact', '/location', '/directions'] },
+            specials: { priority: 8, patterns: ['/specials', '/offers', '/deals'] },
+            service: { priority: 7, patterns: ['/service', '/parts', '/schedule'] }
+        };
+
+        const discoveredPages = new Map();
+        discoveredPages.set(baseUrl, { type: 'homepage', priority: 10 });
+
+        // Find all links on page
+        const links = await driver.findElements(By.css('a[href]'));
+        for (const link of links) {
+            try {
+                const href = await link.getAttribute('href');
+                if (!href) continue;
+
+                const url = new URL(href, baseUrl);
+                if (url.hostname !== baseDomain) continue;
+
+                // Skip non-content pages
+                if (url.pathname.includes('/wp-admin') || url.pathname.includes('.pdf')) continue;
+
+                // Classify page type
+                let pageType = 'other';
+                let maxPriority = 0;
+                for (const [type, {priority, patterns}] of Object.entries(pageTypes)) {
+                    if (patterns.some(pattern => url.pathname.includes(pattern)) && priority > maxPriority) {
+                        pageType = type;
+                        maxPriority = priority;
+                    }
+                }
+
+                // Prioritize VDPs with pricing elements
+                if (pageType === 'vdp') {
+                    const hasPrice = await link.findElements(By.xpath(
+                        './/ancestor::*[contains(@class, "vehicle")]' +
+                        '//*[contains(text(), "$") or contains(@class, "price")]'
+                    )).then(elements => elements.length > 0);
+                    
+                    if (hasPrice) discoveredPages.set(url.href, { type: 'vdp', priority: 11 });
+                }
+
+                if (!discoveredPages.has(url.href)) {
+                    discoveredPages.set(url.href, { type: pageType, priority: maxPriority });
+                }
+            } catch (error) {
+                console.warn('Link processing error:', error);
+            }
+        }
+
+        // Return prioritized pages (homepage + 4 highest priority pages)
+        return Array.from(discoveredPages.entries())
+            .sort((a, b) => b[1].priority - a[1].priority)
+            .slice(0, 5)
+            .map(([url]) => url);
+
+    } catch (error) {
+        console.error('Page discovery failed, using homepage only:', error);
+        return [baseUrl];
+    }
+}
+
 function getTestsForCategory(categoryName) {
     const testMap = {
         'Basic Connectivity': ['Domain Resolution', 'SSL Certificate', 'Server Response', 'Redirect Handling'],
