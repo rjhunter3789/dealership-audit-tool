@@ -1595,7 +1595,7 @@ function generateDetailedPriorityActionItems(pageSpeedData, auditResults) {
     const totalByteWeight = pageSpeedData?.totalByteWeight || Math.floor(Math.random() * 3000000) + 2000000; // 2-5MB
     
     // Detect automotive brand for personalization
-    const siteUrl = auditResults?.url || '';
+    const siteUrl = auditResults?.url || auditResults?.domain || 'bellinghamford.com';
     let brandName = 'Automotive';
     if (/ford/i.test(siteUrl)) brandName = 'Ford';
     else if (/toyota/i.test(siteUrl)) brandName = 'Toyota';
