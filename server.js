@@ -1596,17 +1596,20 @@ function generateDetailedPriorityActionItems(pageSpeedData, auditResults) {
     
    // Detect automotive brand for personalization
 const siteUrl = auditResults?.url || auditResults?.domain || '';
+console.log('🔍 Full auditResults:', auditResults);
+console.log('🔍 URL options:', { 
+    url: auditResults?.url, 
+    domain: auditResults?.domain,
+    siteUrl: siteUrl 
+});
+
 let brandName = 'Automotive';
-
-// Better brand detection with debugging
 const urlToCheck = siteUrl.toLowerCase();
-if (urlToCheck.includes('ford')) brandName = 'Ford';
-else if (urlToCheck.includes('toyota')) brandName = 'Toyota';
+if (urlToCheck.includes('toyota')) brandName = 'Toyota';
+else if (urlToCheck.includes('ford')) brandName = 'Ford';
 else if (urlToCheck.includes('honda')) brandName = 'Honda';
-else if (urlToCheck.includes('chevrolet') || urlToCheck.includes('chevy')) brandName = 'Chevrolet';
-else if (urlToCheck.includes('nissan')) brandName = 'Nissan';
 
-console.log('🔍 Brand Detection Debug:', { siteUrl, urlToCheck, brandName });
+console.log('🔍 Brand Detection Result:', { siteUrl, urlToCheck, brandName });
     
     // CRITICAL PRIORITY - Dynamic Performance
     if (performanceScore < 50) {
