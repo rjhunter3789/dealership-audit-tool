@@ -1594,14 +1594,19 @@ function generateDetailedPriorityActionItems(pageSpeedData, auditResults) {
     const lcp = pageSpeedData?.lcp || Math.floor(Math.random() * 2000) + 2000; // 2000-4000ms range
     const totalByteWeight = pageSpeedData?.totalByteWeight || Math.floor(Math.random() * 3000000) + 2000000; // 2-5MB
     
-    // Detect automotive brand for personalization
-    const siteUrl = auditResults?.url || auditResults?.domain || 'bellinghamford.com';
-    let brandName = 'Automotive';
-    if (/ford/i.test(siteUrl)) brandName = 'Ford';
-    else if (/toyota/i.test(siteUrl)) brandName = 'Toyota';
-    else if (/honda/i.test(siteUrl)) brandName = 'Honda';
-    else if (/chevrolet|chevy/i.test(siteUrl)) brandName = 'Chevrolet';
-    else if (/nissan/i.test(siteUrl)) brandName = 'Nissan';
+   // Detect automotive brand for personalization
+const siteUrl = auditResults?.url || auditResults?.domain || '';
+let brandName = 'Automotive';
+
+// Better brand detection with debugging
+const urlToCheck = siteUrl.toLowerCase();
+if (urlToCheck.includes('ford')) brandName = 'Ford';
+else if (urlToCheck.includes('toyota')) brandName = 'Toyota';
+else if (urlToCheck.includes('honda')) brandName = 'Honda';
+else if (urlToCheck.includes('chevrolet') || urlToCheck.includes('chevy')) brandName = 'Chevrolet';
+else if (urlToCheck.includes('nissan')) brandName = 'Nissan';
+
+console.log('🔍 Brand Detection Debug:', { siteUrl, urlToCheck, brandName });
     
     // CRITICAL PRIORITY - Dynamic Performance
     if (performanceScore < 50) {
