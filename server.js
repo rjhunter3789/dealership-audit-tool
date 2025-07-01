@@ -1603,7 +1603,9 @@ console.log('🔍 URL options:', {
     siteUrl: siteUrl 
 });
 
-let brandName = 'Automotive';
+// TEMPORARY TEST - Force Toyota brand
+let brandName = 'Toyota';
+console.log('🔍 FORCED Toyota brand for testing');
 const urlToCheck = siteUrl.toLowerCase();
 if (urlToCheck.includes('toyota')) brandName = 'Toyota';
 else if (urlToCheck.includes('ford')) brandName = 'Ford';
