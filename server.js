@@ -1023,36 +1023,61 @@ async function runBrandComplianceTest(driver, url, testName) {
                 };
             }
 
-        case 'Pricing Compliance':
-            try {
-                const pricingElements = await driver.executeScript(`
-                    const text = document.body.innerText.toLowerCase();
-                    const hasMSRP = text.includes('msrp') || text.includes('manufacturer suggested');
-                    const hasDisclaimer = text.includes('plus') && (text.includes('tax') || text.includes('fees'));
-                    const hasIncentives = text.includes('incentive') || text.includes('rebate');
-                    return { hasMSRP, hasDisclaimer, hasIncentives };
-                `);
-                
-                const score = [pricingElements.hasMSRP, pricingElements.hasDisclaimer]
-                              .filter(Boolean).length * 2 + 1;
-                
-                return {
-                    score: Math.min(score, 5),
-                    passed: pricingElements.hasMSRP && pricingElements.hasDisclaimer,
-                    details: `MSRP: ${pricingElements.hasMSRP}, Disclaimers: ${pricingElements.hasDisclaimer}`,
-                    recommendations: [
-                        ...(pricingElements.hasMSRP ? [] : ['Include MSRP pricing information']),
-                        ...(pricingElements.hasDisclaimer ? [] : ['Add pricing disclaimers (taxes, fees, etc.)'])
-                    ]
-                };
-            } catch (error) {
-                return {
-                    score: 2,
-                    passed: false,
-                    details: 'Pricing compliance check failed',
-                    recommendations: ['Review pricing disclosure requirements']
-                };
-            }
+        case 'VDP Pricing Compliance':
+    try {
+        await driver.get(url);
+        const pricingData = await driver.executeScript(`
+            const priceElements = Array.from(document.querySelectorAll(
+                '[class*="price"], [class*="msrp"], [class*="cost"], .price, .msrp'
+            ));
+            
+            const hasMsrp = priceElements.some(el => 
+                el.textContent.includes('MSRP') || 
+                el.textContent.includes('Manufacturer')
+            );
+            
+            const hasDisclaimer = priceElements.some(el => 
+                el.textContent.includes('plus') && 
+                (el.textContent.includes('tax') || el.textContent.includes('fee'))
+            );
+            
+            const hasIncentives = priceElements.some(el => 
+                el.textContent.includes('rebate') || 
+                el.textContent.includes('incentive')
+            );
+            
+            return { 
+                priceElements: priceElements.length,
+                hasMsrp,
+                hasDisclaimer,
+                hasIncentives
+            };
+        `);
+        
+        const score = [
+            pricingData.hasMsrp,
+            pricingData.hasDisclaimer,
+            pricingData.priceElements > 0
+        ].filter(Boolean).length * 1.66;
+        
+        return {
+            score: Math.min(5, Math.round(score)),
+            passed: pricingData.hasMsrp && pricingData.hasDisclaimer,
+            details: `MSRP: ${pricingData.hasMsrp}, Disclaimers: ${pricingData.hasDisclaimer}`,
+            recommendations: [
+                ...(pricingData.hasMsrp ? [] : ['Display MSRP clearly']),
+                ...(pricingData.hasDisclaimer ? [] : ['Add pricing disclaimers']),
+                ...(pricingData.hasIncentives ? [] : ['Show available incentives'])
+            ]
+        };
+    } catch (error) {
+        return {
+            score: 2,
+            passed: false,
+            details: 'VDP pricing check failed',
+            recommendations: ['Audit VDP pricing compliance']
+        };
+    }
 
         case 'Logo Usage':
             try {
