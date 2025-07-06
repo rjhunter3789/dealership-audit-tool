@@ -1884,13 +1884,17 @@ app.post('/audit', async (req, res) => {
     }
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Auto Audit Pro server running on port ${PORT}`);
-    console.log(`🌐 Frontend available at http://localhost:${PORT}`);
-    console.log(`📊 API endpoints:`);
-    console.log(`   POST /api/audit - Start new audit`);
-    console.log(`   GET /api/audit/:id - Get audit status`);
-    console.log(`   GET /api/audits - Get audit history`);
-    console.log(`   GET /health - Health check`);
-});
+// THE DEFINITIVE FIX: Only start the server if this file is run directly
+if (require.main === module) {
+    app.listen(PORT, () => {
+        // ... all your original console.log startup messages are safe here ...
+        // We'll use your original startup message
+        console.log(`🚀 Auto Audit Pro server running on port ${PORT}`);
+        console.log(`🌐 Frontend available at http://localhost:${PORT}`);
+        console.log(`📊 API endpoints:`);
+        console.log(`   POST /api/audit - Start new audit`);
+        console.log(`   GET /api/audit/:id - Get audit status`);
+        console.log(`   GET /api/audits - Get audit history`);
+        console.log(`   GET /health - Health check`);
+    });
+}
