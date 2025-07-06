@@ -1782,9 +1782,46 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Serve frontend
+// --- NEW, SIMPLE FRONTEND ROUTES ---
+
+// This shows the main page (views/index.html)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+    res.render('index');
+});
+
+// This runs the simple audit and shows the report (views/report.html)
+app.post('/audit', async (req, res) => {
+    let siteUrl = req.body.url;
+    if (!siteUrl) { return res.redirect('/'); }
+    if (!siteUrl.startsWith('http')) { siteUrl = 'https://' + siteUrl; }
+
+    try {
+        const homepageSoup = await getSoup(siteUrl);
+        const brand = detectBrand(homepageSoup, siteUrl);
+        const discoveredPages = discoverPages(homepageSoup, siteUrl);
+
+        const fullResults = {
+            url: siteUrl,
+            domain: new url.URL(siteUrl).hostname,
+            brand: brand,
+            timestamp: new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' }),
+            pages_found: discoveredPages,
+            audit: {}
+        };
+
+        if (discoveredPages.vdp) {
+            try {
+                const vdpSoup = await getSoup(discoveredPages.vdp);
+                fullResults.audit.vdp = checkVdpExpertise(vdpSoup);
+            } catch (e) {
+                 fullResults.audit.vdp = { error: 'Could not fetch or analyze the VDP page.' };
+            }
+        }
+
+        res.render('report', { results: fullResults });
+    } catch (error) {
+        res.status(500).send(`Could not audit the site. Error: ${error.message}`);
+    }
 });
 
 // Start server
