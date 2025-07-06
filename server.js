@@ -27,12 +27,8 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // ADD THIS LINE for form data
+app.use(express.static('frontend'));
 app.use(express.static('public'));
-
-// NEW TEMPLATE ENGINE SETUP
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
 
 // In-memory storage for MVP
 let auditResults = new Map();
@@ -1773,66 +1769,6 @@ function generateAuditId() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-// --- NEW, FAST AUDIT LOGIC FUNCTIONS (for the simple frontend) ---
-const getSoup = async (pageUrl) => {
-    const headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' };
-    const response = await axios.get(pageUrl, { headers, timeout: 15000 });
-    return cheerio.load(response.data);
-};
-const detectBrand = ($, pageUrl) => {
-    const domain = new url.URL(pageUrl).hostname.toLowerCase();
-    const title = $('title').text().toLowerCase();
-    const KNOWN_BRANDS = ['ford', 'toyota', 'honda', 'chevrolet', 'nissan', 'bmw', 'mercedes-benz', 'lexus', 'audi', 'jeep', 'hyundai', 'kia'];
-    for (const brand of KNOWN_BRANDS) {
-        if (domain.includes(brand) || title.includes(brand)) {
-            return brand.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        }
-    }
-    return "Automotive";
-};
-const discoverPages = ($, startUrl) => {
-    const foundPages = { homepage: startUrl };
-    const baseUrl = new url.URL(startUrl).origin;
-    const PAGE_KEYWORDS = {
-        vdp: ['/detail/', '/vehicle/', '/new-vehicle/', '/used-vehicle/', 'vin='],
-        inventory: ['/inventory/', '/new-vehicles/', '/used-cars/', '/all-inventory/']
-    };
-    $('a[href]').each((i, el) => {
-        const href = $(el).attr('href');
-        if (!href) return;
-        for (const [pageType, keywords] of Object.entries(PAGE_KEYWORDS)) {
-            if (!foundPages[pageType] && keywords.some(kw => href.toLowerCase().includes(kw))) {
-                const fullUrl = new url.URL(href, baseUrl).href;
-                foundPages[pageType] = fullUrl;
-            }
-        }
-    });
-    return foundPages;
-};
-const checkVdpExpertise = ($) => {
-    const results = { score: 0, findings: [], recommendations: [] };
-    const text = $('body').text().toLowerCase();
-    if (text.includes('msrp') || text.includes('sticker price')) {
-        results.score += 30;
-        results.findings.push("MSRP or sticker price is mentioned.");
-    } else {
-        results.recommendations.push("Ensure MSRP is clearly displayed.");
-    }
-    if (text.includes('disclaimer') || text.includes('tax, title, and license')) {
-        results.score += 30;
-        results.findings.push("Pricing disclaimers are present.");
-    } else {
-        results.recommendations.push("Add clear pricing disclaimers.");
-    }
-    if ($('form').length > 0) {
-        results.score += 40;
-        results.findings.push("A lead capture form is present on the page.");
-    } else {
-        results.recommendations.push("Add a prominent 'Check Availability' lead form.");
-    }
-    return results;
-};
-
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ 
@@ -1842,59 +1778,18 @@ app.get('/health', (req, res) => {
     });
 });
 
-// --- NEW, SIMPLE FRONTEND ROUTES ---
-
-// This shows the main page (views/index.html)
+// Serve frontend
 app.get('/', (req, res) => {
-    res.render('index');
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// This runs the simple audit and shows the report (views/report.html)
-app.post('/audit', async (req, res) => {
-    let siteUrl = req.body.url;
-    if (!siteUrl) { return res.redirect('/'); }
-    if (!siteUrl.startsWith('http')) { siteUrl = 'https://' + siteUrl; }
-
-    try {
-        const homepageSoup = await getSoup(siteUrl);
-        const brand = detectBrand(homepageSoup, siteUrl);
-        const discoveredPages = discoverPages(homepageSoup, siteUrl);
-
-        const fullResults = {
-            url: siteUrl,
-            domain: new url.URL(siteUrl).hostname,
-            brand: brand,
-            timestamp: new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' }),
-            pages_found: discoveredPages,
-            audit: {}
-        };
-
-        if (discoveredPages.vdp) {
-            try {
-                const vdpSoup = await getSoup(discoveredPages.vdp);
-                fullResults.audit.vdp = checkVdpExpertise(vdpSoup);
-            } catch (e) {
-                 fullResults.audit.vdp = { error: 'Could not fetch or analyze the VDP page.' };
-            }
-        }
-
-        res.render('report', { results: fullResults });
-    } catch (error) {
-        res.status(500).send(`Could not audit the site. Error: ${error.message}`);
-    }
+// Start server
+app.listen(PORT, () => {
+    console.log(`🚀 Auto Audit Pro server running on port ${PORT}`);
+    console.log(`🌐 Frontend available at http://localhost:${PORT}`);
+    console.log(`📊 API endpoints:`);
+    console.log(`   POST /api/audit - Start new audit`);
+    console.log(`   GET /api/audit/:id - Get audit status`);
+    console.log(`   GET /api/audits - Get audit history`);
+    console.log(`   GET /health - Health check`);
 });
-
-// THE DEFINITIVE FIX: Only start the server if this file is run directly
-if (require.main === module) {
-    app.listen(PORT, () => {
-        // ... all your original console.log startup messages are safe here ...
-        // We'll use your original startup message
-        console.log(`🚀 Auto Audit Pro server running on port ${PORT}`);
-        console.log(`🌐 Frontend available at http://localhost:${PORT}`);
-        console.log(`📊 API endpoints:`);
-        console.log(`   POST /api/audit - Start new audit`);
-        console.log(`   GET /api/audit/:id - Get audit status`);
-        console.log(`   GET /api/audits - Get audit history`);
-        console.log(`   GET /health - Health check`);
-    });
-}
