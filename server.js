@@ -1773,6 +1773,66 @@ function generateAuditId() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
+// --- NEW, FAST AUDIT LOGIC FUNCTIONS (for the simple frontend) ---
+const getSoup = async (pageUrl) => {
+    const headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' };
+    const response = await axios.get(pageUrl, { headers, timeout: 15000 });
+    return cheerio.load(response.data);
+};
+const detectBrand = ($, pageUrl) => {
+    const domain = new url.URL(pageUrl).hostname.toLowerCase();
+    const title = $('title').text().toLowerCase();
+    const KNOWN_BRANDS = ['ford', 'toyota', 'honda', 'chevrolet', 'nissan', 'bmw', 'mercedes-benz', 'lexus', 'audi', 'jeep', 'hyundai', 'kia'];
+    for (const brand of KNOWN_BRANDS) {
+        if (domain.includes(brand) || title.includes(brand)) {
+            return brand.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+    }
+    return "Automotive";
+};
+const discoverPages = ($, startUrl) => {
+    const foundPages = { homepage: startUrl };
+    const baseUrl = new url.URL(startUrl).origin;
+    const PAGE_KEYWORDS = {
+        vdp: ['/detail/', '/vehicle/', '/new-vehicle/', '/used-vehicle/', 'vin='],
+        inventory: ['/inventory/', '/new-vehicles/', '/used-cars/', '/all-inventory/']
+    };
+    $('a[href]').each((i, el) => {
+        const href = $(el).attr('href');
+        if (!href) return;
+        for (const [pageType, keywords] of Object.entries(PAGE_KEYWORDS)) {
+            if (!foundPages[pageType] && keywords.some(kw => href.toLowerCase().includes(kw))) {
+                const fullUrl = new url.URL(href, baseUrl).href;
+                foundPages[pageType] = fullUrl;
+            }
+        }
+    });
+    return foundPages;
+};
+const checkVdpExpertise = ($) => {
+    const results = { score: 0, findings: [], recommendations: [] };
+    const text = $('body').text().toLowerCase();
+    if (text.includes('msrp') || text.includes('sticker price')) {
+        results.score += 30;
+        results.findings.push("MSRP or sticker price is mentioned.");
+    } else {
+        results.recommendations.push("Ensure MSRP is clearly displayed.");
+    }
+    if (text.includes('disclaimer') || text.includes('tax, title, and license')) {
+        results.score += 30;
+        results.findings.push("Pricing disclaimers are present.");
+    } else {
+        results.recommendations.push("Add clear pricing disclaimers.");
+    }
+    if ($('form').length > 0) {
+        results.score += 40;
+        results.findings.push("A lead capture form is present on the page.");
+    } else {
+        results.recommendations.push("Add a prominent 'Check Availability' lead form.");
+    }
+    return results;
+};
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ 
