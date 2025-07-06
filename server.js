@@ -27,8 +27,12 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('frontend'));
+app.use(express.urlencoded({ extended: true })); // ADD THIS LINE for form data
 app.use(express.static('public'));
+
+// NEW TEMPLATE ENGINE SETUP
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // In-memory storage for MVP
 let auditResults = new Map();
