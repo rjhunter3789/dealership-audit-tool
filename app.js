@@ -1157,7 +1157,7 @@ function initializeBenchmarks() {
 // Update benchmark selector dropdown
 function updateBenchmarkSelector(data) {
     const selector = document.getElementById('benchmarkSet');
-    if (\!selector) return;
+    if (!selector) return;
     
     selector.innerHTML = '';
     Object.keys(data.benchmarkSets).forEach(key => {
@@ -1214,7 +1214,7 @@ function saveBenchmarks() {
     
     // Update UI
     updateDashboardMetrics();
-    alert('Benchmarks saved successfully\!');
+    alert('Benchmarks saved successfully!');
 }
 
 // Reset benchmarks to default
@@ -1245,11 +1245,11 @@ function loadBenchmarkSet() {
 // Create new benchmark set
 function createNewBenchmarkSet() {
     const name = prompt('Enter name for new benchmark set (e.g., "Q3 2025", "Southeast Region"):');
-    if (\!name || name.trim() === '') return;
+    if (!name || name.trim() === '') return;
     
     const data = JSON.parse(localStorage.getItem('benchmarkData') || '{}');
     if (data.benchmarkSets[name]) {
-        alert('A benchmark set with this name already exists\!');
+        alert('A benchmark set with this name already exists!');
         return;
     }
     
@@ -1259,7 +1259,7 @@ function createNewBenchmarkSet() {
     
     localStorage.setItem('benchmarkData', JSON.stringify(data));
     updateBenchmarkSelector(data);
-    alert('New benchmark set created\!');
+    alert('New benchmark set created!');
 }
 
 // Delete benchmark set
@@ -1269,7 +1269,7 @@ function deleteBenchmarkSet(setName) {
         return;
     }
     
-    if (\!confirm(`Delete benchmark set "${setName}"? This cannot be undone.`)) return;
+    if (!confirm(`Delete benchmark set "${setName}"? This cannot be undone.`)) return;
     
     const data = JSON.parse(localStorage.getItem('benchmarkData') || '{}');
     delete data.benchmarkSets[setName];
@@ -1309,7 +1309,7 @@ function exportBenchmarks() {
 // Import benchmarks
 function importBenchmarks(event) {
     const file = event.target.files[0];
-    if (\!file) return;
+    if (!file) return;
     
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -1317,7 +1317,7 @@ function importBenchmarks(event) {
             const importData = JSON.parse(e.target.result);
             
             // Validate structure
-            if (\!importData.metrics || typeof importData.metrics \!== 'object') {
+            if (!importData.metrics || typeof importData.metrics !== 'object') {
                 alert('Invalid benchmark file format.');
                 return;
             }
@@ -1335,7 +1335,7 @@ function importBenchmarks(event) {
             populateBenchmarkForm();
             updateDashboardMetrics();
             
-            alert('Benchmarks imported successfully\!');
+            alert('Benchmarks imported successfully!');
         } catch (error) {
             alert('Error importing file: ' + error.message);
         }
@@ -1349,7 +1349,7 @@ function importBenchmarks(event) {
 // Update saved sets list
 function updateSavedSetsList(data) {
     const listDiv = document.getElementById('savedSetsList');
-    if (\!listDiv) return;
+    if (!listDiv) return;
     
     listDiv.innerHTML = '';
     
@@ -1366,13 +1366,13 @@ function updateSavedSetsList(data) {
         
         const metrics = data.benchmarkSets[key];
         const detailsP = document.createElement('p');
-        detailsP.textContent = `Conversion: ${metrics.conversionRate}%  < /dev/null |  Response: ${metrics.responseRate}% | Leads: ${metrics.totalLeads.toLocaleString()}`;
+        detailsP.textContent = `Conversion: ${metrics.conversionRate}% | Response: ${metrics.responseRate}% | Leads: ${metrics.totalLeads.toLocaleString()}`;
         infoDiv.appendChild(detailsP);
         
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'set-actions';
         
-        if (key \!== data.activeBenchmark) {
+        if (key !== data.activeBenchmark) {
             const activateBtn = document.createElement('button');
             activateBtn.className = 'btn-secondary';
             activateBtn.textContent = 'Activate';
@@ -1383,7 +1383,7 @@ function updateSavedSetsList(data) {
             actionsDiv.appendChild(activateBtn);
         }
         
-        if (key \!== 'default') {
+        if (key !== 'default') {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn-secondary';
             deleteBtn.textContent = 'Delete';
