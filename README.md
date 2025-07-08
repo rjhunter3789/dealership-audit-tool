@@ -133,4 +133,4 @@ For questions or issues, please open an issue in this repository.
 
 ---
 
-Built for the Pacific Northwest Ford Dealer Network
+Built for Automotive Dealer Networks
