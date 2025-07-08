@@ -1,0 +1,36 @@
+<html>
+  <head>
+      <title>CSV Test</title>
+  </head>
+  <body>
+      <h1>CSV Upload Test</h1>
+      <input type="file" id="testFile" accept=".csv,.xlsx">
+      <pre id="output"></pre>
+
+      <script>
+      document.getElementById('testFile').addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          const reader = new FileReader();
+
+          reader.onload = function(e) {
+              const text = e.target.result;
+              const lines = text.split('\n');
+              const headers = lines[0].split(',');
+
+              let output = `File: ${file.name}\n`;
+              output += `Headers: ${headers.join(' | ')}\n\n`;
+
+              // Show first 5 rows
+              for (let i = 1; i < Math.min(6, lines.length); i++) {
+                  const values = lines[i].split(',');
+                  output += `Row ${i}: ${values.join(' | ')}\n`;
+              }
+
+              document.getElementById('output').textContent = output;
+          };
+
+          reader.readAsText(file);
+      });
+      </script>
+  </body>
+  </html>

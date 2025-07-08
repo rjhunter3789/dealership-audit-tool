@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Performance Intelligence Platform</title>
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'none'; object-src 'none';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="no-referrer">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>Lead Performance Intelligence Platform</h1>
+            <p class="subtitle">Data-Driven Insights for Automotive Dealerships</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="main-nav">
+            <button class="nav-btn active" onclick="showSection('dashboard')">Dashboard</button>
+            <button class="nav-btn" onclick="showSection('analysis')">Lead Analysis</button>
+            <button class="nav-btn" onclick="showSection('calculator')">ROI Calculator</button>
+            <button class="nav-btn" onclick="showSection('reports')">Reports</button>
+            <button class="nav-btn" onclick="showSection('settings')">⚙️ Settings</button>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <h2>Network Performance Dashboard</h2>
+            
+            <!-- Data Upload Section -->
+            <div class="data-upload">
+                <h3>Upload Dealer Lead Data</h3>
+                <div class="upload-area" onclick="uploadFile()">
+                    <p>📁 Drag & drop your Excel/CSV file here or click to browse</p>
+                    <p style="font-size: 0.9em; color: #666; margin-top: 10px;">Supports .xlsx, .xls, and .csv files</p>
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(event)">
+                </div>
+            </div>
+            
+            <!-- Key Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Total Network Leads</h3>
+                    <p class="metric-value">27,047</p>
+                    <p class="metric-period">Q1-Q2 2025</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Network Conversion Rate</h3>
+                    <p class="metric-value">16.12%</p>
+                    <p class="metric-change positive">Industry Avg: 12%</p>
+                </div>
+                <div class="metric-card">
+                    <h3>No Response Rate</h3>
+                    <p class="metric-value">45.1%</p>
+                    <p class="metric-change negative">Target: <30%</p>
+                </div>
+                <div class="metric-card">
+                    <h3>15-Min Response Rate</h3>
+                    <p class="metric-value">31.7%</p>
+                    <p class="metric-change">Target: 40%+</p>
+                </div>
+            </div>
+
+            <!-- Performance Tiers -->
+            <div class="performance-tiers">
+                <h3>Dealer Performance Tiers</h3>
+                <div class="tier-grid">
+                    <div class="tier-card elite">
+                        <h4>Elite Performers</h4>
+                        <p class="tier-count">6 Dealers</p>
+                        <p class="tier-criteria">20%+ Conversion</p>
+                    </div>
+                    <div class="tier-card strong">
+                        <h4>Strong Performers</h4>
+                        <p class="tier-count">8 Dealers</p>
+                        <p class="tier-criteria">16-20% Conversion</p>
+                    </div>
+                    <div class="tier-card average">
+                        <h4>Average Performers</h4>
+                        <p class="tier-count">10 Dealers</p>
+                        <p class="tier-criteria">12-16% Conversion</p>
+                    </div>
+                    <div class="tier-card challenge">
+                        <h4>Challenge Dealers</h4>
+                        <p class="tier-count">7 Dealers</p>
+                        <p class="tier-criteria"><12% Conversion</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Container -->
+            <div class="charts-container">
+                <div class="chart-wrapper">
+                    <h3>Response Time Distribution</h3>
+                    <canvas id="responseTimeChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <h3>Conversion by Response Time</h3>
+                    <canvas id="conversionChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lead Analysis Section -->
+        <section id="analysis" class="content-section">
+            <h2>Individual Dealer Analysis</h2>
+            
+            <!-- Dealer Selector -->
+            <div class="dealer-selector">
+                <label for="dealerSelect">Select Dealer:</label>
+                <select id="dealerSelect" onchange="updateDealerAnalysis()">
+                    <option value="">Choose a dealer...</option>
+                    <option value="wendle">Wendle Ford Sales (#08684)</option>
+                    <option value="sunset">Sunset Ford (#08202)</option>
+                    <option value="joehall">Joe Hall Ford (#08603)</option>
+                    <option value="sound">Sound Ford (#08511)</option>
+                    <!-- Add more dealers as needed -->
+                </select>
+            </div>
+
+            <!-- Dealer Analysis Results -->
+            <div id="dealerAnalysisResults" class="analysis-results">
+                <p class="placeholder">Select a dealer to view detailed analysis</p>
+            </div>
+        </section>
+
+        <!-- ROI Calculator Section -->
+        <section id="calculator" class="content-section">
+            <h2>Revenue Impact Calculator</h2>
+            <p class="section-description">See how improving your conversion rate impacts annual revenue</p>
+            
+            <div class="calculator-container">
+                <div class="calculator-inputs">
+                    <h3>Dealership Metrics</h3>
+                    
+                    <div class="input-group">
+                        <label for="monthlyLeads">Monthly Lead Volume</label>
+                        <input type="number" id="monthlyLeads" value="873" min="100" max="5000" oninput="calculateROI()">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="currentConversion">Current Conversion Rate (%)</label>
+                        <input type="number" id="currentConversion" value="10.91" min="5" max="30" step="0.1" oninput="calculateROI()">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="avgDealValue">Average Deal Value ($)</label>
+                        <input type="number" id="avgDealValue" value="4255" min="2000" max="8000" oninput="calculateROI()">
+                    </div>
+                    
+                    <h3>Conversion Improvement Scenarios</h3>
+                    <div class="improvement-buttons">
+                        <button class="improvement-btn" onclick="setImprovement(1)">+1%</button>
+                        <button class="improvement-btn" onclick="setImprovement(2)">+2%</button>
+                        <button class="improvement-btn" onclick="setImprovement(3)">+3%</button>
+                        <button class="improvement-btn" onclick="setImprovement(5)">+5%</button>
+                        <button class="improvement-btn" onclick="setImprovementToNetwork()">Network Avg (16.12%)</button>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="targetConversion">Target Conversion Rate (%)</label>
+                        <input type="number" id="targetConversion" value="12.91" min="5" max="30" step="0.1" oninput="calculateROI()">
+                    </div>
+                </div>
+                
+                <div class="calculator-results">
+                    <h3>Revenue Impact</h3>
+                    
+                    <div class="current-performance">
+                        <h4>Current Performance</h4>
+                        <div class="performance-metric">
+                            <span>Annual Sales:</span>
+                            <span id="currentSales">0</span>
+                        </div>
+                        <div class="performance-metric">
+                            <span>Annual Revenue:</span>
+                            <span id="currentRevenue">$0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="improved-performance">
+                        <h4>Improved Performance</h4>
+                        <div class="performance-metric">
+                            <span>Annual Sales:</span>
+                            <span id="improvedSales">0</span>
+                        </div>
+                        <div class="performance-metric">
+                            <span>Annual Revenue:</span>
+                            <span id="improvedRevenue">$0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="revenue-impact">
+                        <h4>💰 Annual Impact</h4>
+                        <div class="impact-card">
+                            <div class="impact-value" id="additionalRevenue">$0</div>
+                            <div class="impact-label">Additional Revenue</div>
+                        </div>
+                        <div class="impact-card">
+                            <div class="impact-value" id="additionalSales">0</div>
+                            <div class="impact-label">Additional Sales</div>
+                        </div>
+                        <div class="impact-card">
+                            <div class="impact-value" id="percentIncrease">0%</div>
+                            <div class="impact-label">Revenue Increase</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="content-section">
+            <h2>Generate Reports</h2>
+            
+            <div class="report-options">
+                <div class="report-card">
+                    <h3>Network Performance Report</h3>
+                    <p>Comprehensive analysis of all 31 dealerships</p>
+                    <button class="report-btn" onclick="generateNetworkReport()">Generate Report</button>
+                </div>
+                
+                <div class="report-card">
+                    <h3>Individual Dealer Report</h3>
+                    <p>Detailed analysis for a specific dealership</p>
+                    <button class="report-btn" onclick="generateDealerReport()">Generate Report</button>
+                </div>
+                
+                <div class="report-card">
+                    <h3>ROI Projection Report</h3>
+                    <p>Financial impact analysis and recommendations</p>
+                    <button class="report-btn" onclick="generateROIReport()">Generate Report</button>
+                </div>
+            </div>
+            
+            <div id="reportOutput" class="report-output"></div>
+        </section>
+        
+        <!-- Settings Section -->
+        <section id="settings" class="content-section">
+            <h2>Settings</h2>
+            
+            <div class="settings-container">
+                <!-- Benchmark Set Selector -->
+                <div class="benchmark-selector">
+                    <h3>Network Benchmark Configuration</h3>
+                    <div class="benchmark-controls">
+                        <label for="benchmarkSet">Active Benchmark Set:</label>
+                        <select id="benchmarkSet" onchange="loadBenchmarkSet()">
+                            <option value="default">Default (Q1-Q2 2025)</option>
+                        </select>
+                        <button class="btn-secondary" onclick="createNewBenchmarkSet()">+ New Set</button>
+                    </div>
+                </div>
+                
+                <!-- Benchmark Editor -->
+                <div class="benchmark-editor">
+                    <h3>Edit Network Benchmarks</h3>
+                    <form id="benchmarkForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="totalLeads">Total Network Leads</label>
+                                <input type="number" id="totalLeads" value="27047" min="0">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="conversionRate">Conversion Rate (%)</label>
+                                <input type="number" id="conversionRate" value="16.12" min="0" max="100" step="0.01">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="responseRate">Response Rate (%)</label>
+                                <input type="number" id="responseRate" value="54.9" min="0" max="100" step="0.1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="noResponseRate">No Response Rate (%)</label>
+                                <input type="number" id="noResponseRate" value="45.1" min="0" max="100" step="0.1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="fifteenMinResponse">15-Min Response Rate (%)</label>
+                                <input type="number" id="fifteenMinResponse" value="31.7" min="0" max="100" step="0.1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="avgResponseTime">Avg Response Time (hours)</label>
+                                <input type="number" id="avgResponseTime" value="5.5" min="0" step="0.1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="medianResponseTime">Median Response Time (minutes)</label>
+                                <input type="number" id="medianResponseTime" value="12" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="benchmark-actions">
+                            <button type="button" class="btn-primary" onclick="saveBenchmarks()">Save Changes</button>
+                            <button type="button" class="btn-secondary" onclick="resetBenchmarks()">Reset to Default</button>
+                            <button type="button" class="btn-secondary" onclick="exportBenchmarks()">Export</button>
+                            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importBenchmarks(event)">
+                            <button type="button" class="btn-secondary" onclick="document.getElementById('importFile').click()">Import</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Saved Sets -->
+                <div class="saved-sets">
+                    <h3>Saved Benchmark Sets</h3>
+                    <div id="savedSetsList" class="sets-list"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

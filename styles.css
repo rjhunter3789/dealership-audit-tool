@@ -1,0 +1,655 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header Styles */
+header {
+    background: linear-gradient(135deg, #003478 0%, #0055b8 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.2em;
+    opacity: 0.9;
+}
+
+/* Navigation */
+.main-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.nav-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    background: #f0f0f0;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    background: #e0e0e0;
+}
+
+.nav-btn.active {
+    background: #003478;
+    color: white;
+}
+
+/* Content Sections */
+.content-section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.content-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Data Upload Section */
+.data-upload {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.upload-area {
+    border: 2px dashed #003478;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.upload-area.dragover {
+    background: #e3f2fd;
+    border-color: #0055b8;
+}
+
+.upload-btn {
+    padding: 12px 30px;
+    background: #003478;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.upload-btn:hover {
+    background: #0055b8;
+}
+
+#fileInput {
+    display: none;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.metric-card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.metric-card h3 {
+    font-size: 1em;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.metric-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #003478;
+    margin: 10px 0;
+}
+
+.metric-period {
+    font-size: 0.9em;
+    color: #999;
+}
+
+.metric-change {
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.metric-change.positive {
+    color: #4CAF50;
+}
+
+.metric-change.negative {
+    color: #f44336;
+}
+
+/* Performance Tiers */
+.performance-tiers {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.tier-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.tier-card {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px solid transparent;
+}
+
+.tier-card.elite {
+    background: #e8f5e9;
+    border-color: #4CAF50;
+}
+
+.tier-card.strong {
+    background: #e3f2fd;
+    border-color: #2196F3;
+}
+
+.tier-card.average {
+    background: #fff9c4;
+    border-color: #FFC107;
+}
+
+.tier-card.challenge {
+    background: #ffebee;
+    border-color: #f44336;
+}
+
+.tier-card h4 {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}
+
+.tier-count {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.tier-criteria {
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* Charts Container */
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.chart-wrapper {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.chart-wrapper h3 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Dealer Selector */
+.dealer-selector {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.dealer-selector label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.dealer-selector select {
+    padding: 10px 15px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+}
+
+/* Analysis Results */
+.analysis-results {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    min-height: 400px;
+}
+
+.placeholder {
+    text-align: center;
+    color: #999;
+    font-size: 1.1em;
+    margin-top: 100px;
+}
+
+/* ROI Calculator */
+.calculator-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.calculator-inputs, .calculator-results {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.input-group small {
+    display: block;
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+/* Improvement Buttons */
+.improvement-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.improvement-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 15px;
+    background: #f0f0f0;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.improvement-btn:hover {
+    background: #003478;
+    color: white;
+    border-color: #003478;
+}
+
+/* Performance Sections */
+.current-performance, .improved-performance {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.performance-metric {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 1.1em;
+}
+
+/* Revenue Impact Cards */
+.revenue-impact {
+    background: #e3f2fd;
+    padding: 25px;
+    border-radius: 10px;
+    border: 2px solid #2196F3;
+}
+
+.revenue-impact h4 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+}
+
+.impact-card {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.impact-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #003478;
+    margin-bottom: 5px;
+}
+
+.impact-label {
+    font-size: 1em;
+    color: #666;
+}
+
+/* Report Options */
+.report-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.report-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.report-card h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.report-card p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.report-btn {
+    padding: 12px 30px;
+    background: #003478;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.report-btn:hover {
+    background: #0055b8;
+}
+
+.report-output {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    min-height: 200px;
+    display: none;
+}
+
+.report-output.active {
+    display: block;
+}
+
+/* Settings Section */
+.settings-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.benchmark-selector {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+}
+
+.benchmark-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.benchmark-controls label {
+    font-weight: 600;
+}
+
+.benchmark-controls select {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    min-width: 200px;
+}
+
+.benchmark-editor {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.form-group input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #0055b8;
+}
+
+.benchmark-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background-color: #0055b8;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #003478;
+}
+
+.btn-secondary {
+    background-color: #f5f5f5;
+    color: #333;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.saved-sets {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sets-list {
+    margin-top: 15px;
+}
+
+.set-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.set-item.active {
+    border-color: #0055b8;
+    background-color: #f0f7ff;
+}
+
+.set-info h4 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.set-info p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.set-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.set-actions button {
+    padding: 5px 15px;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .calculator-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .main-nav {
+        flex-wrap: wrap;
+    }
+    
+    .nav-btn {
+        flex: 1 1 45%;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white;
+    }
+    
+    .main-nav, .calculate-btn, .report-btn {
+        display: none;
+    }
+    
+    .container {
+        max-width: 100%;
+    }
+}
