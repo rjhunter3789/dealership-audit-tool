@@ -45,11 +45,15 @@ document.addEventListener('keypress', resetSessionTimer);
 document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     showSection('dashboard');
-    calculateROI();
     resetSessionTimer();
     
     // Initialize benchmarks
     initializeBenchmarks();
+    
+    // Only calculate ROI if we're on the calculator page
+    if (document.getElementById('monthlyLeads')) {
+        calculateROI();
+    }
     
     // Security: Disable right-click context menu
     document.addEventListener('contextmenu', function(e) {
