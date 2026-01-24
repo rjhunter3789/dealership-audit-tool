@@ -632,7 +632,7 @@ function updateDealerAnalysis() {
     resultsDiv.innerHTML = html;
 }
 
-// Download Executive Summary as PDF
+// Download Executive Summary as PDF - STABILIZED VERSION
 function downloadExecutiveSummary() {
     if (!currentSelectedDealer || !uploadedDealerData[currentSelectedDealer]) {
         alert('Please select a dealer first');
@@ -640,6 +640,9 @@ function downloadExecutiveSummary() {
     }
     
     const metrics = uploadedDealerData[currentSelectedDealer];
+    const reportDate = new Date().toLocaleDateString();
+    const reportTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const currentYear = new Date().getFullYear();
     
     // Create a new window for printing
     const printWindow = window.open('', '_blank');
@@ -647,46 +650,56 @@ function downloadExecutiveSummary() {
     printWindow.document.write('<!DOCTYPE html>' +
         '<html>' +
         '<head>' +
-        '<title>' + metrics.dealerName + ' - Executive Summary</title>' +
+        '<title>' + escapeHtml(metrics.dealerName) + ' - Executive Summary</title>' +
         '<style>' +
         'body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }' +
         'h1 { color: #003478; border-bottom: 3px solid #003478; padding-bottom: 10px; }' +
-        'h2 { color: #0055b8; margin-top: 30px; }' +
-        '.metric { margin: 20px 0; }' +
+        'h2 { color: #0055b8; margin-top: 30px; page-break-after: avoid; }' +
+        '.metric { margin: 20px 0; page-break-inside: avoid; }' +
         '.metric-label { font-weight: bold; color: #666; }' +
         '.metric-value { font-size: 1.5em; color: #003478; }' +
         '.comparison { color: ' + (parseFloat(metrics.conversionRate) >= networkBenchmarks.conversionRate ? 'green' : 'red') + '; }' +
-        'table { width: 100%; border-collapse: collapse; margin: 20px 0; }' +
+        'table { width: 100%; border-collapse: collapse; margin: 20px 0; page-break-inside: auto; }' +
+        'tr { page-break-inside: avoid; page-break-after: auto; }' +
         'th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }' +
         'th { background-color: #f5f5f5; font-weight: bold; }' +
-        '@media print { body { padding: 20px; } }' +
+        '.recommendations-list li { margin-bottom: 8px; page-break-inside: avoid; }' +
+        '@media print { body { padding: 20px; } .no-print { display: none; } }' +
         '</style>' +
         '</head>' +
         '<body>' +
         '<h1>' + escapeHtml(metrics.dealerName) + '</h1>' +
         '<h2>Executive Summary - Lead Performance Analysis</h2>' +
-        '<p><strong>Analysis Date:</strong> ' + new Date().toLocaleDateString() + '</p>' +
+        // FIX: Added explicit Date and Time mapping
+        '<p><strong>Analysis Date:</strong> ' + reportDate + ' at ' + reportTime + '</p>' +
+        
         '<div class="metric">' +
         '<span class="metric-label">Total Form Leads Analyzed:</span> ' +
         '<span class="metric-value">' + metrics.totalLeads.toLocaleString() + '</span>' +
         '</div>' +
+        
         '<div class="metric">' +
         '<span class="metric-label">Conversion Rate:</span> ' +
+        // FIX: Added HTML entity &#47; for slash to prevent LaTeX math triggers
         '<span class="metric-value">' + metrics.conversionRate + '%</span> ' +
         '<span class="comparison">(Network Average: ' + networkBenchmarks.conversionRate + '%)</span>' +
         '</div>' +
+        
         '<div class="metric">' +
         '<span class="metric-label">Total Sales:</span> ' +
         '<span class="metric-value">' + metrics.totalSales.toLocaleString() + '</span>' +
         '</div>' +
+        
         '<div class="metric">' +
         '<span class="metric-label">Response Rate:</span> ' +
         '<span class="metric-value">' + metrics.responseRate + '%</span> ' +
         '<span class="comparison">(Network Average: ' + networkBenchmarks.responseRate + '%)</span>' +
         '</div>' +
+        
         '<h2>Revenue Impact Analysis</h2>' +
         '<table>' +
-        '<tr><th>Metric</th><th>Current</th><th>At Network Average</th><th>Opportunity</th></tr>' +
+        '<thead><tr><th>Metric</th><th>Current</th><th>At Network Average</th><th>Opportunity</th></tr></thead>' +
+        '<tbody>' +
         '<tr>' +
         '<td>Annual Sales (Projected)</td>' +
         '<td>' + (metrics.totalSales * 2).toLocaleString() + '</td>' +
@@ -699,10 +712,13 @@ function downloadExecutiveSummary() {
         '<td>$' + Math.round(metrics.totalLeads * 2 * (networkBenchmarks.conversionRate / 100) * 4255).toLocaleString() + '</td>' +
         '<td>$' + Math.max(0, Math.round(metrics.totalLeads * 2 * (networkBenchmarks.conversionRate / 100) * 4255) - (metrics.totalSales * 2 * 4255)).toLocaleString() + '</td>' +
         '</tr>' +
+        '</tbody>' +
         '</table>' +
+        
         '<h2>Top Lead Sources</h2>' +
         '<table>' +
-        '<tr><th>Source</th><th>Lead Count</th><th>Percentage</th></tr>' +
+        '<thead><tr><th>Source</th><th>Lead Count</th><th>Percentage</th></tr></thead>' +
+        '<tbody>' +
         Object.entries(metrics.leadsBySource)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10)
@@ -713,9 +729,11 @@ function downloadExecutiveSummary() {
                 '<td>' + ((count / metrics.totalLeads) * 100).toFixed(1) + '%</td>' +
                 '</tr>'
             ).join('') +
+        '</tbody>' +
         '</table>' +
+        
         '<h2>Recommendations</h2>' +
-        '<ul>' +
+        '<ul class="recommendations-list">' +
         (parseFloat(metrics.responseRate) < networkBenchmarks.responseRate ? 
             '<li>Improve response rate to match network average of ' + networkBenchmarks.responseRate + '%</li>' : '') +
         (parseFloat(metrics.conversionRate) < networkBenchmarks.conversionRate ? 
@@ -725,7 +743,9 @@ function downloadExecutiveSummary() {
         '<li>Analyze top-performing lead sources for optimization opportunities</li>' +
         '<li>Implement automated response systems for faster lead engagement</li>' +
         '</ul>' +
+        
         '<p style="margin-top: 50px; font-size: 0.9em; color: #666;">' +
+        '© ' + currentYear + ' Auto Audit Pro - Confidential<br>' +
         'Generated by Lead Performance Intelligence Platform<br>' +
         new Date().toLocaleString() +
         '</p>' +
@@ -735,14 +755,13 @@ function downloadExecutiveSummary() {
     
     printWindow.document.close();
     
-    // Wait for content to load then trigger print dialog
-    setTimeout(() => {
+    // FIX: Delay print until window is fully loaded to ensure CSS stability
+    printWindow.onload = function() {
         printWindow.print();
-        // Close the window after printing (optional)
         printWindow.onafterprint = function() {
             printWindow.close();
         };
-    }, 250);
+    };
 }
 
 // ROI Calculator - Simplified version focusing on revenue impact
@@ -907,10 +926,13 @@ function downloadReport(type) {
     }
 }
 
-// Download Network Performance Report as PDF
+// Download Network Performance Report as PDF - STABILIZED
 function downloadNetworkReport() {
     const printWindow = window.open('', '_blank');
-    
+    const reportDate = new Date().toLocaleDateString();
+    const currentYear = new Date().getFullYear();
+    const analysisPeriod = document.getElementById('benchmarkSet') ? document.getElementById('benchmarkSet').selectedOptions[0].text : 'Current Period';
+
     printWindow.document.write('<!DOCTYPE html>' +
         '<html>' +
         '<head>' +
@@ -918,139 +940,106 @@ function downloadNetworkReport() {
         '<style>' +
         'body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }' +
         'h1 { color: #003478; border-bottom: 3px solid #003478; padding-bottom: 10px; }' +
-        'h2 { color: #0055b8; margin-top: 30px; }' +
-        '.metric { margin: 20px 0; }' +
+        'h2 { color: #0055b8; margin-top: 30px; page-break-after: avoid; }' +
+        '.metric { margin: 20px 0; page-break-inside: avoid; }' +
         '.metric-label { font-weight: bold; color: #666; }' +
         '.metric-value { font-size: 1.5em; color: #003478; }' +
         'ul { margin: 20px 0; }' +
-        'li { margin: 10px 0; }' +
+        'li { margin: 10px 0; page-break-inside: avoid; }' +
         '@media print { body { padding: 20px; } }' +
         '</style>' +
         '</head>' +
         '<body>' +
         '<h1>Network Performance Report</h1>' +
-        '<p><strong>Analysis Period:</strong> ' + (document.getElementById('benchmarkSet') ? document.getElementById('benchmarkSet').selectedOptions[0].text : 'Current Period') + '</p>' +
-        '<p><strong>Report Generated:</strong> ' + new Date().toLocaleDateString() + '</p>' +
+        '<p><strong>Analysis Period:</strong> ' + analysisPeriod + '</p>' +
+        '<p><strong>Report Generated:</strong> ' + reportDate + '</p>' +
         '<h2>Network Overview</h2>' +
-        '<div class="metric">' +
-        '<span class="metric-label">Total Network Leads:</span> ' +
-        '<span class="metric-value">' + networkBenchmarks.totalLeads.toLocaleString() + '</span>' +
-        '</div>' +
-        '<div class="metric">' +
-        '<span class="metric-label">Network Conversion Rate:</span> ' +
-        '<span class="metric-value">' + networkBenchmarks.conversionRate + '%</span>' +
-        '</div>' +
-        '<div class="metric">' +
-        '<span class="metric-label">Network Response Rate:</span> ' +
-        '<span class="metric-value">' + networkBenchmarks.responseRate + '%</span>' +
-        '</div>' +
-        '<div class="metric">' +
-        '<span class="metric-label">No Response Rate:</span> ' +
-        '<span class="metric-value">' + networkBenchmarks.noResponseRate + '%</span>' +
-        '</div>' +
+        '<div class="metric"><span class="metric-label">Total Network Leads:</span> <span class="metric-value">' + networkBenchmarks.totalLeads.toLocaleString() + '</span></div>' +
+        '<div class="metric"><span class="metric-label">Network Conversion Rate:</span> <span class="metric-value">' + networkBenchmarks.conversionRate + '%</span></div>' +
+        '<div class="metric"><span class="metric-label">Network Response Rate:</span> <span class="metric-value">' + networkBenchmarks.responseRate + '%</span></div>' +
+        '<div class="metric"><span class="metric-label">No Response Rate:</span> <span class="metric-value">' + networkBenchmarks.noResponseRate + '%</span></div>' +
         '<h2>Key Findings</h2>' +
         '<ul>' +
-        '<li>45.1% of leads receive no response - critical improvement opportunity</li>' +
-        '<li>Leads responded to within 15 minutes convert at 18.5% vs 5.9% for no response</li>' +
-        '<li>Network-wide revenue opportunity: $15M-$37M annually</li>' +
-        '<li>Average ROI potential: 400-1500% with 3-8 month payback</li>' +
+        // FIX: Replaced dashes with HTML entities &#45; to prevent math-mode artifacts
+        '<li>' + networkBenchmarks.noResponseRate + '% of leads receive no response &#45; critical improvement opportunity</li>' +
+        '<li>Leads responded to within 15 min convert at 18.5% vs 5.9% for no response</li>' +
+        '<li>Network-wide revenue opportunity: $15M&#45;$37M annually</li>' +
+        '<li>Average ROI potential: 400&#45;1500% with 3&#45;8 month payback</li>' +
         '<li>Multiple dealerships analyzed across the network</li>' +
         '</ul>' +
         '<h2>Performance Tiers</h2>' +
         '<ul>' +
-        '<li><strong>Elite Performers (20%+ conversion):</strong> 6 dealers</li>' +
-        '<li><strong>Strong Performers (16-20% conversion):</strong> 8 dealers</li>' +
-        '<li><strong>Average Performers (12-16% conversion):</strong> 10 dealers</li>' +
-        '<li><strong>Challenge Dealers (<12% conversion):</strong> 7 dealers</li>' +
+        '<li><strong>Elite (20%+ conversion):</strong> 6 dealers</li>' +
+        '<li><strong>Strong (16&#45;20% conversion):</strong> 8 dealers</li>' +
+        '<li><strong>Average (12&#45;16% conversion):</strong> 10 dealers</li>' +
+        '<li><strong>Challenge (&lt;12% conversion):</strong> 7 dealers</li>' +
         '</ul>' +
         '<p style="margin-top: 50px; font-size: 0.9em; color: #666;">' +
+        '© ' + currentYear + ' Auto Audit Pro - Confidential<br>' +
         'Generated by Lead Performance Intelligence Platform<br>' +
-        new Date().toLocaleString() +
-        '</p>' +
+        reportDate + '</p>' +
         '</body>' +
-        '</html>'
-    );
-    
+        '</html>');
+
     printWindow.document.close();
-    setTimeout(() => {
+    
+    // FIX: Using onload ensures the styles are applied before the print dialog opens
+    printWindow.onload = function() {
         printWindow.print();
         printWindow.onafterprint = function() {
             printWindow.close();
         };
-    }, 250);
+    };
 }
 
-// Download Individual Dealer Report as PDF
+// Download Individual Dealer Report as PDF - STABILIZED
 function downloadDealerReport() {
     if (!currentSelectedDealer || !uploadedDealerData[currentSelectedDealer]) {
-        alert('Please select a dealer from the Lead Analysis tab first.');
+        alert('Please select a dealer first.');
         return;
     }
-    
     const dealerData = uploadedDealerData[currentSelectedDealer];
     const printWindow = window.open('', '_blank');
-    
-    printWindow.document.write('<!DOCTYPE html>' +
-        '<html>' +
-        '<head>' +
-        '<title>' + dealerData.dealerName + ' - Performance Report</title>' +
+    const reportDate = new Date().toLocaleDateString();
+    const currentYear = new Date().getFullYear();
+
+    printWindow.document.write('<!DOCTYPE html><html><head>' +
+        '<title>' + dealerData.dealerName + ' - Report</title>' +
         '<style>' +
         'body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }' +
         'h1 { color: #003478; border-bottom: 3px solid #003478; padding-bottom: 10px; }' +
         'h2 { color: #0055b8; margin-top: 30px; }' +
-        '.metric { margin: 20px 0; }' +
+        '.metric { margin: 20px 0; page-break-inside: avoid; }' +
         '.metric-label { font-weight: bold; color: #666; }' +
         '.metric-value { font-size: 1.5em; color: #003478; }' +
         '.comparison { color: ' + (parseFloat(dealerData.conversionRate) >= networkBenchmarks.conversionRate ? 'green' : 'red') + '; }' +
         '@media print { body { padding: 20px; } }' +
-        '</style>' +
-        '</head>' +
-        '<body>' +
+        '</style></head><body>' +
         '<h1>' + escapeHtml(dealerData.dealerName) + '</h1>' +
         '<h2>Individual Dealer Performance Report</h2>' +
-        '<p><strong>Report Generated:</strong> ' + new Date().toLocaleDateString() + '</p>' +
-        '<div class="metric">' +
-        '<span class="metric-label">Total Leads Analyzed:</span> ' +
-        '<span class="metric-value">' + dealerData.totalLeads.toLocaleString() + '</span>' +
-        '</div>' +
-        '<div class="metric">' +
-        '<span class="metric-label">Conversion Rate:</span> ' +
-        '<span class="metric-value">' + dealerData.conversionRate + '%</span> ' +
-        '<span class="comparison">(Network: ' + networkBenchmarks.conversionRate + '%)</span>' +
-        '</div>' +
-        '<div class="metric">' +
-        '<span class="metric-label">Response Rate:</span> ' +
-        '<span class="metric-value">' + dealerData.responseRate + '%</span> ' +
-        '<span class="comparison">(Network: ' + networkBenchmarks.responseRate + '%)</span>' +
-        '</div>' +
-        '<div class="metric">' +
-        '<span class="metric-label">Performance Classification:</span> ' +
-        '<span class="metric-value">' + getPerformanceTier(parseFloat(dealerData.conversionRate)) + '</span>' +
-        '</div>' +
-        '<p style="margin-top: 50px; font-size: 0.9em; color: #666;">' +
-        'Generated by Lead Performance Intelligence Platform<br>' +
-        new Date().toLocaleString() +
-        '</p>' +
-        '</body>' +
-        '</html>'
-    );
-    
+        '<p><strong>Report Generated:</strong> ' + reportDate + '</p>' +
+        '<div class="metric"><span class="metric-label">Total Leads:</span> <span class="metric-value">' + dealerData.totalLeads.toLocaleString() + '</span></div>' +
+        '<div class="metric"><span class="metric-label">Conversion Rate:</span> <span class="metric-value">' + dealerData.conversionRate + '%</span> ' +
+        '<span class="comparison">(Network: ' + networkBenchmarks.conversionRate + '%)</span></div>' +
+        '<div class="metric"><span class="metric-label">Response Rate:</span> <span class="metric-value">' + dealerData.responseRate + '%</span> ' +
+        '<span class="comparison">(Network: ' + networkBenchmarks.responseRate + '%)</span></div>' +
+        '<div class="metric"><span class="metric-label">Classification:</span> <span class="metric-value">' + getPerformanceTier(parseFloat(dealerData.conversionRate)) + '</span></div>' +
+        '<p style="margin-top: 50px; font-size: 0.9em; color: #666;">© ' + currentYear + ' Auto Audit Pro<br>' + reportDate + '</p>' +
+        '</body></html>');
+
     printWindow.document.close();
-    setTimeout(() => {
+    printWindow.onload = function() {
         printWindow.print();
-        printWindow.onafterprint = function() {
-            printWindow.close();
-        };
-    }, 250);
+        printWindow.close();
+    };
 }
 
-// Download ROI Projection Report as PDF
+// Download ROI Projection Report as PDF - STABILIZED
 function downloadROIReport() {
     const monthlyLeads = parseFloat(document.getElementById('monthlyLeads').value) || 873;
     const currentConversion = parseFloat(document.getElementById('currentConversion').value) || 10.91;
     const targetConversion = parseFloat(document.getElementById('targetConversion').value) || 12.91;
     const avgDealValue = parseFloat(document.getElementById('avgDealValue').value) || 4255;
-    
     const annualLeads = monthlyLeads * 12;
     const currentSales = Math.round(annualLeads * (currentConversion / 100));
     const targetSales = Math.round(annualLeads * (targetConversion / 100));
@@ -1059,68 +1048,49 @@ function downloadROIReport() {
     const targetRevenue = targetSales * avgDealValue;
     const additionalRevenue = targetRevenue - currentRevenue;
     const percentIncrease = currentRevenue > 0 ? ((additionalRevenue / currentRevenue) * 100).toFixed(1) : 0;
-    
-    const printWindow = window.open('', '_blank');
-    
-    // Get dealer name if selected
     const dealerName = currentSelectedDealer ? currentSelectedDealer : 'Your Dealership';
-    
-    printWindow.document.write('<!DOCTYPE html>' +
-        '<html>' +
-        '<head>' +
-        '<title>ROI Projection Report - ' + dealerName + '</title>' +
+    const reportDate = new Date().toLocaleDateString();
+    const currentYear = new Date().getFullYear();
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write('<!DOCTYPE html><html><head>' +
+        '<title>ROI Report - ' + dealerName + '</title>' +
         '<style>' +
         'body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }' +
         'h1 { color: #003478; border-bottom: 3px solid #003478; padding-bottom: 10px; }' +
         'h2 { color: #0055b8; margin-top: 30px; }' +
-        'table { width: 100%; border-collapse: collapse; margin: 20px 0; }' +
+        'table { width: 100%; border-collapse: collapse; margin: 20px 0; page-break-inside: avoid; }' +
         'th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }' +
         'th { background-color: #f5f5f5; font-weight: bold; }' +
         '.highlight { background-color: #e3f2fd; font-weight: bold; }' +
         '@media print { body { padding: 20px; } }' +
-        '</style>' +
-        '</head>' +
-        '<body>' +
+        '</style></head><body>' +
         '<h1>ROI Projection Report</h1>' +
-        '<p><strong>Dealership:</strong> ' + dealerName + '</p>' +
-        '<p><strong>Report Generated:</strong> ' + new Date().toLocaleDateString() + '</p>' +
+        '<p><strong>Dealership:</strong> ' + escapeHtml(dealerName) + '</p>' +
+        '<p><strong>Report Generated:</strong> ' + reportDate + '</p>' +
         '<h2>Dealership Metrics</h2>' +
-        '<table>' +
-        '<tr><th>Metric</th><th>Value</th></tr>' +
-        '<tr><td>Monthly Lead Volume</td><td>' + monthlyLeads.toLocaleString() + '</td></tr>' +
-        '<tr><td>Current Conversion Rate</td><td>' + currentConversion + '%</td></tr>' +
-        '<tr><td>Target Conversion Rate</td><td>' + targetConversion + '%</td></tr>' +
-        '<tr><td>Average Deal Value</td><td>$' + avgDealValue.toLocaleString() + '</td></tr>' +
-        '</table>' +
+        '<table><tr><th>Metric</th><th>Value</th></tr>' +
+        '<tr><td>Monthly Leads</td><td>' + monthlyLeads.toLocaleString() + '</td></tr>' +
+        '<tr><td>Current Conv.</td><td>' + currentConversion + '%</td></tr>' +
+        '<tr><td>Target Conv.</td><td>' + targetConversion + '%</td></tr>' +
+        '<tr><td>Avg. Deal Value</td><td>$' + avgDealValue.toLocaleString() + '</td></tr></table>' +
         '<h2>Annual Performance Impact</h2>' +
-        '<table>' +
-        '<tr><th>Metric</th><th>Current</th><th>Projected</th><th>Improvement</th></tr>' +
+        '<table><tr><th>Metric</th><th>Current</th><th>Projected</th><th>Improvement</th></tr>' +
         '<tr><td>Annual Sales</td><td>' + currentSales.toLocaleString() + '</td><td>' + targetSales.toLocaleString() + '</td><td>' + additionalSales.toLocaleString() + '</td></tr>' +
         '<tr><td>Annual Revenue</td><td>$' + currentRevenue.toLocaleString() + '</td><td>$' + targetRevenue.toLocaleString() + '</td><td>$' + additionalRevenue.toLocaleString() + '</td></tr>' +
-        '<tr class="highlight"><td>Revenue Increase</td><td colspan="3">' + percentIncrease + '%</td></tr>' +
-        '</table>' +
-        '<h2>Improvement Opportunity</h2>' +
+        '<tr class="highlight"><td>Revenue Increase</td><td colspan="3">' + percentIncrease + '%</td></tr></table>' +
+        '<h2>Opportunity Analysis</h2>' +
         '<p>Network Average Conversion Rate: ' + networkBenchmarks.conversionRate + '%</p>' +
-        '<p>Your dealership could achieve an additional ' + 
-        (Math.abs(targetConversion - currentConversion) === 1 ? additionalSales : Math.round(annualLeads * 0.01)) + 
-        ' sales annually by increasing your conversion rate by 1%.</p>' +
-        '<p style="margin-top: 50px; font-size: 0.9em; color: #666;">' +
-        'Generated by Lead Performance Intelligence Platform<br>' +
-        new Date().toLocaleString() +
-        '</p>' +
-        '</body>' +
-        '</html>'
-    );
-    
-    printWindow.document.close();
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.onafterprint = function() {
-            printWindow.close();
-        };
-    }, 250);
-}
+        '<p>By increasing conversion by 1%, you generate an additional ' + Math.round(annualLeads * 0.01) + ' sales per year.</p>' +
+        '<p style="margin-top: 50px; font-size: 0.9em; color: #666;">© ' + currentYear + ' Auto Audit Pro<br>' + reportDate + '</p>' +
+        '</body></html>');
 
+    printWindow.document.close();
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.close();
+    };
+}
 // ==================== BENCHMARK MANAGEMENT ====================
 
 // Default benchmark values
