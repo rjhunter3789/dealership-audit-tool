@@ -639,17 +639,51 @@ header h1 {
     }
 }
 
-/* Print Styles */
+/* Print Styles - STABILIZED */
 @media print {
     body {
-        background: white;
+        background: white !important;
+        color: black !important;
+        font-size: 12pt !important;
     }
     
-    .main-nav, .calculate-btn, .report-btn {
-        display: none;
+    /* FIX: Remove all navigation and action buttons */
+    .main-nav, .calculate-btn, .report-btn, .download-btn, header {
+        display: none !important;
     }
     
+    /* FIX: Force container to use full width and auto height */
     .container {
-        max-width: 100%;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* FIX: Prevent cards and sections from forcing full-page heights */
+    .content-section, .metrics-grid, .charts-container {
+        display: block !important;
+        height: auto !important;
+    }
+
+    /* FIX: Tighten spacing to condense 10 pages into 4-5 */
+    .metric-card, .chart-wrapper, .executive-summary, .issue-item {
+        page-break-inside: avoid !important;
+        margin-bottom: 10px !important;
+        padding: 10px !important;
+        border: 1px solid #eee !important;
+        height: auto !important;
+    }
+
+    /* FIX: Shrink large metrics to save vertical space */
+    .metric-value {
+        font-size: 1.8em !important;
+        margin: 5px 0 !important;
+    }
+
+    /* FIX: Ensure headers stay with their content */
+    h1, h2, h3 {
+        page-break-after: avoid !important;
+        margin-top: 15px !important;
+        margin-bottom: 5px !important;
     }
 }
