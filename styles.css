@@ -639,25 +639,50 @@ header h1 {
     }
 }
 
-/* Print Styles - STABILIZED */
+/* Print Styles - STABILIZED & CONDENSED */
 @media print {
-    body {
+    /* 1. Reset everything to auto-height to eliminate 10-page bloat */
+    html, body, .container, .content-section, main {
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
         background: white !important;
-        color: black !important;
-        font-size: 12pt !important;
     }
-    
-    /* FIX: Remove all navigation and action buttons */
-    .main-nav, .calculate-btn, .report-btn, .download-btn, header {
+
+    /* 2. Hide all UI elements that shouldn't be on paper */
+    .main-nav, .calculate-btn, .report-btn, .download-btn, header, .nav-btn, .no-print {
         display: none !important;
     }
-    
-    /* FIX: Force container to use full width and auto height */
-    .container {
-        max-width: 100% !important;
-        padding: 0 !important;
+
+    /* 3. Collapse massive white gaps between sections */
+    .metrics-grid, .charts-container, .tier-grid {
+        display: block !important; /* Forces cards to stack tightly vertically */
+        margin: 0 !important;
+        height: auto !important;
+    }
+
+    .metric-card, .chart-wrapper, .tier-card, .issue-item, .executive-summary {
+        page-break-inside: avoid !important; /* Keeps metrics whole but shares the page */
+        margin-bottom: 10px !important;
+        padding: 10px !important;
+        border: 1px solid #eee !important;
+        display: block !important;
+        height: auto !important;
+    }
+
+    /* 4. Shrink metrics and headers to fit more on each sheet */
+    h1, h2, h3 {
+        margin-top: 10px !important;
+        margin-bottom: 5px !important;
+        page-break-after: avoid !important;
+    }
+
+    .metric-value {
+        font-size: 1.8em !important;
         margin: 0 !important;
     }
+}
 
     /* FIX: Prevent cards and sections from forcing full-page heights */
     .content-section, .metrics-grid, .charts-container {
