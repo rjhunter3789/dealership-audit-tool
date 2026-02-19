@@ -639,9 +639,9 @@ header h1 {
     }
 }
 
-/* Print Styles - STABILIZED & CONDENSED */
+/* FINAL STABILIZED PRINT ENGINE */
 @media print {
-    /* 1. Reset everything to auto-height to eliminate 10-page bloat */
+    /* 1. Reset heights to eliminate 10-page bloat */
     html, body, .container, .content-section, main {
         height: auto !important;
         min-height: 0 !important;
@@ -650,64 +650,40 @@ header h1 {
         background: white !important;
     }
 
-    /* 2. Hide all UI elements that shouldn't be on paper */
+    /* 2. Hide website buttons and navigation */
     .main-nav, .calculate-btn, .report-btn, .download-btn, header, .nav-btn, .no-print {
         display: none !important;
     }
 
-    /* 3. Collapse massive white gaps between sections */
-    .metrics-grid, .charts-container, .tier-grid {
-        display: block !important; /* Forces cards to stack tightly vertically */
+    /* 3. Force 2-column grid to save vertical space */
+    .metrics-grid, .tier-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
         margin: 0 !important;
-        height: auto !important;
     }
 
+    /* 4. Tighten cards and prevent awkward page breaks */
     .metric-card, .chart-wrapper, .tier-card, .issue-item, .executive-summary {
-        page-break-inside: avoid !important; /* Keeps metrics whole but shares the page */
-        margin-bottom: 10px !important;
-        padding: 10px !important;
-        border: 1px solid #eee !important;
-        display: block !important;
-        height: auto !important;
-    }
-
-    /* 4. Shrink metrics and headers to fit more on each sheet */
-    h1, h2, h3 {
-        margin-top: 10px !important;
-        margin-bottom: 5px !important;
-        page-break-after: avoid !important;
-    }
-
-    .metric-value {
-        font-size: 1.8em !important;
-        margin: 0 !important;
-    }
-}
-
-    /* FIX: Prevent cards and sections from forcing full-page heights */
-    .content-section, .metrics-grid, .charts-container {
-        display: block !important;
-        height: auto !important;
-    }
-
-    /* FIX: Tighten spacing to condense 10 pages into 4-5 */
-    .metric-card, .chart-wrapper, .executive-summary, .issue-item {
         page-break-inside: avoid !important;
+        break-inside: avoid !important;
         margin-bottom: 10px !important;
         padding: 10px !important;
         border: 1px solid #eee !important;
+        display: block !important;
         height: auto !important;
     }
 
-    /* FIX: Shrink large metrics to save vertical space */
+    /* 5. Shrink the scale of the score numbers */
     .metric-value {
-        font-size: 1.8em !important;
+        font-size: 1.6em !important;
         margin: 5px 0 !important;
     }
 
-    /* FIX: Ensure headers stay with their content */
+    /* 6. Keep headers with their content */
     h1, h2, h3 {
         page-break-after: avoid !important;
+        break-after: avoid !important;
         margin-top: 15px !important;
         margin-bottom: 5px !important;
     }
