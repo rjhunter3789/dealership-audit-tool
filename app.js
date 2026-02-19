@@ -670,7 +670,7 @@ function downloadExecutiveSummary() {
         '<body>' +
         '<h1>' + escapeHtml(metrics.dealerName) + '</h1>' +
         '<h2>Executive Summary - Lead Performance Analysis</h2>' +
-        // FIX: Added explicit Date and Time mapping
+        // FIX: Explicitly stamps the Analysis Date and Time on the PDF
         '<p><strong>Analysis Date:</strong> ' + reportDate + ' at ' + reportTime + '</p>' +
         
         '<div class="metric">' +
@@ -680,8 +680,8 @@ function downloadExecutiveSummary() {
         
         '<div class="metric">' +
         '<span class="metric-label">Conversion Rate:</span> ' +
-        // FIX: Added HTML entity &#47; for slash to prevent LaTeX math triggers
-        '<span class="metric-value">' + metrics.conversionRate + '%</span> ' +
+        // FIX: Replaced raw slash with HTML entity &#47; to stop the LaTeX math glitch
+        '<span class="metric-value">' + metrics.conversionRate.toString().replace("/", "&#47;") + '%</span> ' +
         '<span class="comparison">(Network Average: ' + networkBenchmarks.conversionRate + '%)</span>' +
         '</div>' +
         
@@ -755,12 +755,14 @@ function downloadExecutiveSummary() {
     
     printWindow.document.close();
     
-    // FIX: Delay print until window is fully loaded to ensure CSS stability
+    // FIX: Delay ensures print layout stabilizes before the print dialog opens
     printWindow.onload = function() {
-        printWindow.print();
-        printWindow.onafterprint = function() {
-            printWindow.close();
-        };
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.onafterprint = function() {
+                printWindow.close();
+            };
+        }, 250);
     };
 }
 
